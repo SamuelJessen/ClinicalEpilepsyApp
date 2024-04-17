@@ -1,0 +1,50 @@
+﻿@page "/patienttable"
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Age</th>
+            <th>Gender</th>
+            <!-- Tilføj flere overskrifter efter behov -->
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var patient in Patients)
+        {
+            <tr>
+                <td>@patient.Id</td>
+                <td>@patient.Name</td>
+                <td>@patient.Age</td>
+                <td>@patient.Gender</td>
+                <!-- Tilføj flere celler efter behov -->
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    List<Patient> Patients { get; set; }
+
+    protected override void OnInitialized() =>
+        // Simuler patientdata (kan erstattes med rigtige data fra en database eller anden kilde)
+        Patients = new List<Patient>
+            {
+            new Patient { Id = 1, Name = "John Doe", Age = 35, Gender = "Male" },
+            new Patient { Id = 2, Name = "Jane Smith", Age = 28, Gender = "Female" },
+            new Patient { Id = 3, Name = "Alice Johnson", Age = 32, Gender = "Male" },
+            new Patient { Id = 4, Name = "Bob Brown", Age = 57, Gender = "Female" },
+                // Tilføj flere patienter efter behov
+            };
+
+
+	public class Patient
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public int Age { get; set; }
+        public string Gender { get; set; }
+        // Tilføj andre egenskaber efter behov
+    }
+}
