@@ -1,6 +1,4 @@
 using ClinicalEpilepsyApp.Components;
-using ClinicalEpilepsyApp.Infrastructure.Context;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
