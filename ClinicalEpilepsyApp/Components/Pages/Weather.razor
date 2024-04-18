@@ -1,13 +1,15 @@
-﻿@page "/weather"
+﻿@page "/patients"
+@using ClinicalEpilepsyApp.Domain.Models
+@using ClinicalEpilepsyApp.Infrastructure.Repositories
 @attribute [StreamRendering]
 
-<PageTitle>Weather</PageTitle>
+<PageTitle>Patients</PageTitle>
 
-<h1>Weather</h1>
+<h1>Patients</h1>
 
-<p>This component demonstrates showing data.</p>
+<button class="btn btn-primary" @onclick="AddPatient">Add Patient</button>
 
-@if (forecasts == null)
+@if (patients == null)
 {
     <p><em>Loading...</em></p>
 }
@@ -15,50 +17,47 @@ else
 {
     <table class="table">
         <thead>
-            <tr>
-                <th>Date</th>
-                <th>Temp. (C)</th>
-                <th>Temp. (F)</th>
-                <th>Summary</th>
-            </tr>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>CSI</th>
+            <th></th>
+        </tr>
         </thead>
         <tbody>
-            @foreach (var forecast in forecasts)
-            {
-                <tr>
-                    <td>@forecast.Date.ToShortDateString()</td>
-                    <td>@forecast.TemperatureC</td>
-                    <td>@forecast.TemperatureF</td>
-                    <td>@forecast.Summary</td>
-                </tr>
-            }
+        @foreach (var patient in patients)
+        {
+            <tr>
+                <td>@patient.Id</td>
+                <td>@patient.Name</td>
+                <td>@patient.CSI</td>
+                <td><button class="btn btn-link" @onclick="() => EditPatient(patient)">Edit</button></td>
+            </tr>
+        }
         </tbody>
     </table>
 }
 
 @code {
-    private WeatherForecast[]? forecasts;
+    private List<Patient> patients;
+
+    private PatientRepository repository;
 
     protected override async Task OnInitializedAsync()
     {
-        // Simulate asynchronous loading to demonstrate streaming rendering
-        await Task.Delay(500);
-
-        var startDate = DateOnly.FromDateTime(DateTime.Now);
-        var summaries = new[] { "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching" };
-        forecasts = Enumerable.Range(1, 5).Select(index => new WeatherForecast
-        {
-            Date = startDate.AddDays(index),
-            TemperatureC = Random.Shared.Next(-20, 55),
-            Summary = summaries[Random.Shared.Next(summaries.Length)]
-        }).ToArray();
+    // Load patients from the repository
+        patients = await repository.GetAllPatientsAsync();
     }
 
-    private class WeatherForecast
+    private void AddPatient()
     {
-        public DateOnly Date { get; set; }
-        public int TemperatureC { get; set; }
-        public string? Summary { get; set; }
-        public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    // Navigate to the edit page with empty fields
+        NavigationManager.NavigateTo("/patients/edit");
+    }
+
+    private void EditPatient(Patient patient)
+    {
+    // Navigate to the edit page with patient details
+        NavigationManager.NavigateTo($"/patients/edit/{patient.Id}");
     }
 }
