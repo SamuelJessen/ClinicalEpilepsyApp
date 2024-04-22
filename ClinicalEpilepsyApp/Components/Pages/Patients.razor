@@ -1,0 +1,53 @@
+﻿@page "/patients"
+
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+@using System.Net.Http.Json
+
+<h1>Patients</h1>
+
+@if (patients == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Id</th>
+            <th>CSI</th>
+            <!-- Add more columns as needed -->
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var patient in patients)
+        {
+            <tr>
+                <td><a href="@($"patients/{patient.Id}")">@patient.Name</a></td>
+                    <td>@patient.Id</td>
+                    <td>@patient.CSI</td>
+                <!-- Add more columns as needed -->
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<Patient> patients;
+
+    protected override async Task OnInitializedAsync()
+    {
+        patients = await HttpClient.GetFromJsonAsync<List<Patient>>("https://localhost:7128/patients");
+    }
+
+    public class Patient
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public int CSI { get; set; }
+        public string Password { get; set; }
+    }
+}

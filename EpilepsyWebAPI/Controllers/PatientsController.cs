@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 namespace EpilepsyWebAPI.Controllers
 {
 	[ApiController]
-	[Route("[controller]")]
 	public class PatientsController : ControllerBase
 	{
 		private readonly ILogger<PatientsController> _logger;
@@ -17,7 +16,7 @@ namespace EpilepsyWebAPI.Controllers
 			_patientRepository = patientRepository;
 		}
 
-		[HttpGet()]
+		[HttpGet("patients")]
 		public async Task<IActionResult> GetAllPatients()
 		{
 			try
@@ -32,7 +31,7 @@ namespace EpilepsyWebAPI.Controllers
 			}
 		}
 
-		[HttpGet("/{id}")]
+		[HttpGet("patients/{id}")]
 		public async Task<IActionResult> GetPatientById(string id)
 		{
 			try
@@ -47,7 +46,7 @@ namespace EpilepsyWebAPI.Controllers
 			}
 		}
 
-		[HttpPost()]
+		[HttpPost("patients/{id}")]
 		public async Task<IActionResult> AddPatient([FromBody] Patient patient)
 		{
 			try
@@ -62,7 +61,7 @@ namespace EpilepsyWebAPI.Controllers
 			}
 		}
 
-		[HttpPut("/{id}")]
+		[HttpPut("patients/{id}")]
 		public async Task<IActionResult> UpdatePatient(string id, [FromBody] Patient patient)
 		{
 			try
