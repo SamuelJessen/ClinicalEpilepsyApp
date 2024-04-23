@@ -1,50 +1,73 @@
 ﻿@page "/patienttable"
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Age</th>
-            <th>Gender</th>
-            <!-- Tilføj flere overskrifter efter behov -->
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var patient in Patients)
+@using System.Linq.Dynamic.Core
+
+<RadzenDataGrid @bind-Value=@selectedItems Data="@data" TItem="IDictionary<string, object>" ColumnWidth="200px"
+                AllowFiltering="true" FilterPopupRenderMode="PopupRenderMode.OnDemand" FilterMode="FilterMode.Advanced" AllowPaging="true" AllowSorting="true">
+    <Columns>
+        @foreach (var column in columns)
         {
-            <tr>
-                <td>@patient.Id</td>
-                <td>@patient.Name</td>
-                <td>@patient.Age</td>
-                <td>@patient.Gender</td>
-                <!-- Tilføj flere celler efter behov -->
-            </tr>
+            <RadzenDataGridColumn Title="@column.Key" Type="column.Value"
+                                  Property="@GetColumnPropertyExpression(column.Key, column.Value)">
+                <Template>
+                    @context[@column.Key]
+                </Template>
+            </RadzenDataGridColumn>
         }
-    </tbody>
-</table>
+    </Columns>
+</RadzenDataGrid>
 
 @code {
-    List<Patient> Patients { get; set; }
+    IList<IDictionary<string, object>> selectedItems;
 
-    protected override void OnInitialized() =>
-        // Simuler patientdata (kan erstattes med rigtige data fra en database eller anden kilde)
-        Patients = new List<Patient>
-            {
-            new Patient { Id = 1, Name = "John Doe", Age = 35, Gender = "Male" },
-            new Patient { Id = 2, Name = "Jane Smith", Age = 28, Gender = "Female" },
-            new Patient { Id = 3, Name = "Alice Johnson", Age = 32, Gender = "Male" },
-            new Patient { Id = 4, Name = "Bob Brown", Age = 57, Gender = "Female" },
-                // Tilføj flere patienter efter behov
-            };
+    public IEnumerable<IDictionary<string, object>> data { get; set; }
 
+    public IDictionary<string, Type> columns { get; set; }
 
-	public class Patient
+    public string GetColumnPropertyExpression(string name, Type type)
     {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public int Age { get; set; }
-        public string Gender { get; set; }
-        // Tilføj andre egenskaber efter behov
+        var expression = $@"it[""{name}""].ToString()";
+
+        if (type == typeof(int))
+        {
+            return $"int.Parse({expression})";
+        }
+        else if (type == typeof(DateTime))
+        {
+            return $"DateTime.Parse({expression})";
+        }
+
+        return expression;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        columns = new Dictionary<string, Type>()
+        {
+            { "EmployeeID", typeof(int) },
+            { "FirstName", typeof(string) },
+            { "LastName", typeof(string) },
+            { "HireDate", typeof(DateTime) },
+        };
+
+        foreach (var i in Enumerable.Range(0, 50))
+        {
+            columns.Add($"Column{i}", typeof(string));
+        }
+
+        data = Enumerable.Range(0, 100).Select(i =>
+        {
+            var row = new Dictionary<string, object>();
+
+            foreach (var column in columns)
+            {
+                row.Add(column.Key, column.Value == typeof(int) ? i :
+                    column.Value == typeof(DateTime) ? DateTime.Now.AddMonths(i) : $"{column.Key}{i}");
+            }
+
+            return row;
+        });
     }
 }

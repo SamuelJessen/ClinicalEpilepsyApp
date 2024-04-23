@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="MudBlazor" Version="6.19.1" />
+    <PackageReference Include="Radzen.Blazor" Version="4.29.8" />
   </ItemGroup>
 
 </Project>
