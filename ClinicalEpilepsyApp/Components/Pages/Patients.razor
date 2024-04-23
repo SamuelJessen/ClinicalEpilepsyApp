@@ -1,8 +1,8 @@
 ﻿@page "/patients"
+@rendermode InteractiveServer
 
 @inject HttpClient HttpClient
 @inject NavigationManager NavigationManager
-@using System.Net.Http.Json
 
 <h1>Patients</h1>
 
@@ -18,7 +18,6 @@ else
             <th>Name</th>
             <th>Id</th>
             <th>CSI</th>
-            <!-- Add more columns as needed -->
         </tr>
         </thead>
         <tbody>
@@ -26,13 +25,13 @@ else
         {
             <tr>
                 <td><a href="@($"patients/{patient.Id}")">@patient.Name</a></td>
-                    <td>@patient.Id</td>
-                    <td>@patient.CSI</td>
-                <!-- Add more columns as needed -->
+                <td>@patient.Id</td>
+                <td>@patient.CSI</td>
             </tr>
         }
         </tbody>
     </table>
+    <button class="btn btn-primary" @onclick="NavigateToAddPatient">Add Patient</button>
 }
 
 @code {
@@ -41,6 +40,11 @@ else
     protected override async Task OnInitializedAsync()
     {
         patients = await HttpClient.GetFromJsonAsync<List<Patient>>("https://localhost:7128/patients");
+    }
+
+    private void NavigateToAddPatient()
+    {
+        NavigationManager.NavigateTo("/add-patient");
     }
 
     public class Patient

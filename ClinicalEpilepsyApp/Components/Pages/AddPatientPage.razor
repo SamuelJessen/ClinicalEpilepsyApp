@@ -1,0 +1,52 @@
+﻿@page "/add-patient"
+@rendermode InteractiveServer
+
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+
+<h1>Add Patient</h1>
+
+<div class="form-group">
+    <label for="nameInput">Name:</label>
+    <input type="text" class="form-control" id="nameInput" @bind="@patient.Name" />
+</div>
+<div class="form-group">
+    <label for="csiInput">CSI:</label>
+    <input type="number" class="form-control" id="csiInput" @bind="@patient.CSI" />
+</div>
+<div class="form-group">
+    <label for="idInput">ID:</label>
+    <input type="text" class="form-control" id="idInput" @bind="@patient.Id" />
+</div>
+<div class="form-group">
+    <label for="passwordInput">Password:</label>
+    <input type="text" class="form-control" id="passwordInput" @bind="@patient.Password" />
+</div>
+
+<button class="btn btn-primary" @onclick="AddPatient">Add</button>
+
+@code {
+    private Patient patient = new Patient();
+
+    private async Task AddPatient()
+    {
+        var response = await HttpClient.PostAsJsonAsync<Patient>("https://localhost:7128/patients", patient);
+        if (response.IsSuccessStatusCode)
+        {
+            NavigationManager.NavigateTo("/patients");
+        }
+        else
+        {
+    // Handle failure, show error message, etc.
+        }
+    }
+
+    public class Patient
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public int CSI { get; set; }
+        public string Password { get; set; }
+    }
+}
+

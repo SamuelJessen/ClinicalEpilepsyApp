@@ -46,13 +46,13 @@ namespace EpilepsyWebAPI.Controllers
 			}
 		}
 
-		[HttpPost("patients/{id}")]
+		[HttpPost("patients")]
 		public async Task<IActionResult> AddPatient([FromBody] Patient patient)
 		{
 			try
 			{
 				await _patientRepository.AddPatientAsync(patient);
-				return CreatedAtRoute("GetPatientById", new { id = patient.Id }, patient);
+				return Ok(patient);
 			}
 			catch (Exception ex)
 			{
@@ -80,6 +80,28 @@ namespace EpilepsyWebAPI.Controllers
 				return StatusCode(500, "Internal server error");
 			}
 		}
-	}
+
+        [HttpDelete("patients/{id}")]
+        public async Task<IActionResult> DeletePatient(string id)
+        {
+            try
+            {
+                var existingPatient = await _patientRepository.GetPatientByIdAsync(id);
+
+                if (existingPatient == null)
+                {
+                    return NotFound("Patient not found");
+                }
+
+                await _patientRepository.DeletePatientAsync(id);
+                return Ok("Patient deleted successfully");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error occurred while deleting patient with ID: {id}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+    }
 
 }

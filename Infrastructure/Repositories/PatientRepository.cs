@@ -33,5 +33,17 @@ namespace ClinicalEpilepsyApp.Infrastructure.Repositories
 			_dbContext.Entry(patient).State = EntityState.Modified;
 			await _dbContext.SaveChangesAsync();
 		}
+
+		public async Task DeletePatientAsync(string id)
+        {
+            var patient = await _dbContext.Patients.FindAsync(id);
+            if (patient == null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            _dbContext.Patients.Remove(patient);
+            await _dbContext.SaveChangesAsync();
+        }
 	}
 }

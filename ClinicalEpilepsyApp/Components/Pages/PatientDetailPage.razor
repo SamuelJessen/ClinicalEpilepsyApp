@@ -1,7 +1,7 @@
 ﻿@page "/patients/{patientId}"
-
 @inject HttpClient HttpClient
 @inject NavigationManager NavigationManager
+@rendermode InteractiveServer
 
 <h1>Patient Details</h1>
 
@@ -14,21 +14,24 @@ else
     <div>
         <div class="form-group">
             <label for="nameInput">Name:</label>
-            <input type="text" class="form-control" id="nameInput" @bind="@patient.Name" />
+            <span id="nameInput">@patient.Name</span>
         </div>
         <div class="form-group">
             <label for="csiInput">CSI:</label>
-            <input type="text" class="form-control" id="csiInput" @bind="@patient.CSI" />
+            <span id="csiInput">@patient.CSI</span>
         </div>
         <div class="form-group">
             <label for="idInput">ID:</label>
-            <input type="text" class="form-control" id="idInput" @bind="@patient.Id" />
+            <span id="idInput">@patient.Id</span>
         </div>
         <div class="form-group">
             <label for="passwordInput">Password:</label>
-            <input type="text" class="form-control" id="passwordInput" @bind="@patient.Password" />
+            <span id="passwordInput">@patient.Password</span>
         </div>
-        <button @onclick="SavePatient" disabled="@(!IsDirty)">Save</button>
+        <div>
+            <button class="btn btn-danger" @onclick="DeletePatient">Delete</button>
+        </div>
+        
     </div>
 }
 
@@ -37,18 +40,23 @@ else
     public string PatientId { get; set; }
 
     private Patient patient;
-    private Patient originalPatient;
-    private bool IsDirty => patient != null && !patient.Equals(originalPatient);
 
     protected override async Task OnInitializedAsync()
     {
-        originalPatient = await GetPatientDetails(PatientId);
-        patient = new Patient{
-            Id = originalPatient.Id,
-            Name = originalPatient.Name,
-            CSI = originalPatient.CSI,
-            Password = originalPatient.Password
-        };
+        patient = await GetPatientDetails(PatientId);
+    }
+
+    private async Task DeletePatient()
+    {
+        var response = await HttpClient.DeleteAsync($"https://localhost:7128/patients/{PatientId}");
+        if (response.IsSuccessStatusCode)
+        {
+            NavigationManager.NavigateTo("/patients");
+        }
+        else
+        {
+            Console.WriteLine("Failed");
+        }
     }
 
     private async Task<Patient> GetPatientDetails(string patientId)
@@ -56,25 +64,13 @@ else
         return await HttpClient.GetFromJsonAsync<Patient>($"https://localhost:7128/patients/{patientId}");
     }
 
-    private async Task SavePatient()
-    {
-        var response = await HttpClient.PutAsJsonAsync($"https://localhost:7128/patients/{patient.Id}", patient);
-    }
+    
 
-    public class Patient : IEquatable<Patient>
+    public class Patient
     {
         public string Id { get; set; }
         public string Name { get; set; }
         public int CSI { get; set; }
         public string Password { get; set; }
-        
-        public bool Equals(Patient other)
-        {
-            return other != null &&
-                   Id == other.Id &&
-                   Name == other.Name &&
-                   CSI == other.CSI &&
-                   Password == other.Password;
-        }
     }
 }
