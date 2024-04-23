@@ -5,13 +5,13 @@ VisualStudioVersion = 17.8.34525.116
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClinicalEpilepsyApp", "ClinicalEpilepsyApp\ClinicalEpilepsyApp.csproj", "{94371527-EADD-4A70-BA70-20B96C07E9E3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClinicalEpilepsyApp.Domain", "ClinicalEpilepsyApp.Domain\ClinicalEpilepsyApp.Domain.csproj", "{019B32DF-9704-4CF3-BA72-29E143CF02AB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClinicalEpilepsyApp.Domain", "ClinicalEpilepsyApp.Domain\ClinicalEpilepsyApp.Domain.csproj", "{019B32DF-9704-4CF3-BA72-29E143CF02AB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClinicalEpilepsyApp.Infrastructure", "Infrastructure\ClinicalEpilepsyApp.Infrastructure.csproj", "{BDA06A7C-5E28-4F82-A0D8-AB578077DCE0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClinicalEpilepsyApp.Infrastructure", "Infrastructure\ClinicalEpilepsyApp.Infrastructure.csproj", "{BDA06A7C-5E28-4F82-A0D8-AB578077DCE0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EpilepsyWebAPI", "EpilepsyWebAPI\EpilepsyWebAPI.csproj", "{41F00376-7E19-46E7-A83D-3034C1B1D9C9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EpilepsyWebAPI", "EpilepsyWebAPI\EpilepsyWebAPI.csproj", "{41F00376-7E19-46E7-A83D-3034C1B1D9C9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EpilepsyMQTTObserver", "EpilepsyMQTTObserver\EpilepsyMQTTObserver.csproj", "{0AF002F0-B605-4DF8-9DF0-F9F9071B79B8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EpilepsyMQTTObserver", "EpilepsyMQTTObserver\EpilepsyMQTTObserver.csproj", "{0AF002F0-B605-4DF8-9DF0-F9F9071B79B8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

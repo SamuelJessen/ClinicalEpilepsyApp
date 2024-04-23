@@ -1,0 +1,57 @@
+﻿@page "/patients"
+@rendermode InteractiveServer
+
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+
+<h1>Patients</h1>
+
+@if (patients == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Id</th>
+            <th>CSI</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var patient in patients)
+        {
+            <tr>
+                <td><a href="@($"patients/{patient.Id}")">@patient.Name</a></td>
+                <td>@patient.Id</td>
+                <td>@patient.CSI</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    <button class="btn btn-primary" @onclick="NavigateToAddPatient">Add Patient</button>
+}
+
+@code {
+    private List<Patient> patients;
+
+    protected override async Task OnInitializedAsync()
+    {
+        patients = await HttpClient.GetFromJsonAsync<List<Patient>>("https://localhost:7128/patients");
+    }
+
+    private void NavigateToAddPatient()
+    {
+        NavigationManager.NavigateTo("/add-patient");
+    }
+
+    public class Patient
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public int CSI { get; set; }
+        public string Password { get; set; }
+    }
+}

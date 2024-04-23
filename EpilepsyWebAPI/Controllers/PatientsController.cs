@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 namespace EpilepsyWebAPI.Controllers
 {
 	[ApiController]
-	[Route("[controller]")]
 	public class PatientsController : ControllerBase
 	{
 		private readonly ILogger<PatientsController> _logger;
@@ -17,7 +16,7 @@ namespace EpilepsyWebAPI.Controllers
 			_patientRepository = patientRepository;
 		}
 
-		[HttpGet()]
+		[HttpGet("patients")]
 		public async Task<IActionResult> GetAllPatients()
 		{
 			try
@@ -32,7 +31,7 @@ namespace EpilepsyWebAPI.Controllers
 			}
 		}
 
-		[HttpGet("/{id}")]
+		[HttpGet("patients/{id}")]
 		public async Task<IActionResult> GetPatientById(string id)
 		{
 			try
@@ -47,13 +46,13 @@ namespace EpilepsyWebAPI.Controllers
 			}
 		}
 
-		[HttpPost()]
+		[HttpPost("patients")]
 		public async Task<IActionResult> AddPatient([FromBody] Patient patient)
 		{
 			try
 			{
 				await _patientRepository.AddPatientAsync(patient);
-				return CreatedAtRoute("GetPatientById", new { id = patient.Id }, patient);
+				return Ok(patient);
 			}
 			catch (Exception ex)
 			{
@@ -62,7 +61,7 @@ namespace EpilepsyWebAPI.Controllers
 			}
 		}
 
-		[HttpPut("/{id}")]
+		[HttpPut("patients/{id}")]
 		public async Task<IActionResult> UpdatePatient(string id, [FromBody] Patient patient)
 		{
 			try
@@ -81,6 +80,28 @@ namespace EpilepsyWebAPI.Controllers
 				return StatusCode(500, "Internal server error");
 			}
 		}
-	}
+
+        [HttpDelete("patients/{id}")]
+        public async Task<IActionResult> DeletePatient(string id)
+        {
+            try
+            {
+                var existingPatient = await _patientRepository.GetPatientByIdAsync(id);
+
+                if (existingPatient == null)
+                {
+                    return NotFound("Patient not found");
+                }
+
+                await _patientRepository.DeletePatientAsync(id);
+                return Ok("Patient deleted successfully");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error occurred while deleting patient with ID: {id}");
+                return StatusCode(500, "Internal server error");
+            }
+        }
+    }
 
 }
