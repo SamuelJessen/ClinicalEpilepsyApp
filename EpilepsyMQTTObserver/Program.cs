@@ -3,7 +3,7 @@ using uPLibrary.Networking.M2Mqtt.Messages;
 
 string brokerAddress = "test.mosquitto.org"; // Replace with your MQTT broker address
 string clientId = Guid.NewGuid().ToString(); // Generate a unique client ID
-string topic = "ecg_data_group1"; // Topic to subscribe to
+string topic = "ecg_data_group1/measurements"; // Topic to subscribe to
 
 MqttClient mqttClient = new MqttClient(brokerAddress);
 

@@ -1,4 +1,5 @@
-﻿using ClinicalEpilepsyApp.Domain.Models;
+﻿using ClinicalEpilepsyApp.Domain.DBModels;
+using ClinicalEpilepsyApp.Domain.Models;
 using ClinicalEpilepsyApp.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 

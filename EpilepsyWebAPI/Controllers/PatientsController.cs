@@ -1,4 +1,4 @@
-using ClinicalEpilepsyApp.Domain.Models;
+using ClinicalEpilepsyApp.Domain.DBModels;
 using ClinicalEpilepsyApp.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Mvc;
 
