@@ -39,7 +39,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        patients = await HttpClient.GetFromJsonAsync<List<Patient>>("https://localhost:7128/patients");
+        patients = await HttpClient.GetFromJsonAsync<List<Patient>>("https://localhost:7128/patients") ?? new List<Patient>();
     }
 
     private void NavigateToAddPatient()
