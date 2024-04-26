@@ -129,10 +129,43 @@ public class PatientsController : ControllerBase
             return StatusCode(500, "Internal server error");
         }
     }
+
+    [HttpPut("patients/{id}/thresholds")]
+    public async Task<IActionResult> UpdateThresholds(string id, [FromBody] ThresholdUpdateRequest thresholds)
+    {
+        try
+        {
+            var patient = await _patientRepository.GetPatientByIdAsync(id);
+
+            if (patient == null)
+            {
+                return NotFound("Patient not found");
+            }
+
+            // Update the thresholds
+            patient.CSIThreshold = thresholds.CSIThreshold;
+            patient.ModCSIThreshold = thresholds.ModCSIThreshold;
+
+            await _patientRepository.UpdatePatientAsync(patient);
+
+            return Ok(patient);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error occurred while updating thresholds for patient with ID: {id}");
+            return StatusCode(500, "Internal server error");
+        }
+    }
 }
 
 public class PatientLoginRequest
 {
     public string Id { get; set; }
     public string Password { get; set; }
+}
+
+public class ThresholdUpdateRequest
+{
+    public int CSIThreshold { get; set; }
+    public int ModCSIThreshold { get; set; }
 }
