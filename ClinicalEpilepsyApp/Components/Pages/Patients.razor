@@ -1,4 +1,5 @@
 ﻿@page "/patients"
+@using ClinicalEpilepsyApp.Domain.DBModels
 @rendermode InteractiveServer
 
 @inject HttpClient HttpClient
@@ -26,7 +27,8 @@ else
             <tr>
                 <td><a href="@($"patients/{patient.Id}")">@patient.Name</a></td>
                 <td>@patient.Id</td>
-                <td>@patient.CSI</td>
+                    <td>@patient.CSIThreshold</td>
+                    <td>@patient.ModCSIThreshold</td>
             </tr>
         }
         </tbody>
@@ -45,13 +47,5 @@ else
     private void NavigateToAddPatient()
     {
         NavigationManager.NavigateTo("/add-patient");
-    }
-
-    public class Patient
-    {
-        public string Id { get; set; }
-        public string Name { get; set; }
-        public int CSI { get; set; }
-        public string Password { get; set; }
     }
 }

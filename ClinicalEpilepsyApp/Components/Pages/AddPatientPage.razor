@@ -1,4 +1,6 @@
 ﻿@page "/add-patient"
+@using Microsoft.AspNetCore.Components
+@using ClinicalEpilepsyApp.Domain.DBModels
 @rendermode InteractiveServer
 
 @inject HttpClient HttpClient
@@ -41,12 +43,5 @@
         }
     }
 
-    public class Patient
-    {
-        public string Id { get; set; }
-        public string Name { get; set; }
-        public int CSI { get; set; }
-        public string Password { get; set; }
-    }
 }
 

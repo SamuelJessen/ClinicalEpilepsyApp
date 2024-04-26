@@ -1,6 +1,5 @@
 using ClinicalEpilepsyApp.Domain.DBModels;
 using ClinicalEpilepsyApp.Infrastructure.Repositories;
-using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EpilepsyWebAPI.Controllers;
