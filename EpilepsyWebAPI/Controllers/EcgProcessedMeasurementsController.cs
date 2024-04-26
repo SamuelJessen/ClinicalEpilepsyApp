@@ -31,4 +31,11 @@ public class EcgProcessedMeasurementsController : ControllerBase
         }
         return Ok(measurement);
     }
+
+    [HttpPost("measurements")]
+    public async Task<ActionResult<EcgProcessedMeasurement>> AddEcgProcessedMeasurement([FromBody] EcgProcessedMeasurement measurement)
+    {
+        await _repository.AddProcessedMeasurementAsync(measurement);
+        return Ok(measurement);
+    }
 }

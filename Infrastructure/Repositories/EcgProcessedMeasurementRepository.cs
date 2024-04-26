@@ -22,16 +22,19 @@ namespace ClinicalEpilepsyApp.Infrastructure.Repositories
         public async Task<List<EcgProcessedMeasurement>> GetAllProcessedMeasurementsAsync()
         {
             return await _dbContext.EcgProcessedMeasurements
-                .Include(e => e.Patient) // Include related patient data if needed
                 .ToListAsync();
         }
 
         public async Task<EcgProcessedMeasurement> GetProcessedMeasurementByIdAsync(Guid id)
         {
             return await _dbContext.EcgProcessedMeasurements
-                .Include(e => e.Patient) // Include related patient data if needed
                 .FirstOrDefaultAsync(e => e.ProcessedMeasurementId == id);
         }
 
+        public async Task AddProcessedMeasurementAsync(EcgProcessedMeasurement measurement)
+        {
+            _dbContext.EcgProcessedMeasurements.Add(measurement);
+            await _dbContext.SaveChangesAsync();
+        }
     }
 }

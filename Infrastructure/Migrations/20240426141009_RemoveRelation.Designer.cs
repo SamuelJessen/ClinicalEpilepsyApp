@@ -4,6 +4,7 @@ using ClinicalEpilepsyApp.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ClinicalEpilepsyApp.Infrastructure.Migrations
 {
     [DbContext(typeof(ClinicalEpilepsyAppDbContext))]
-    partial class ClinicalEpilepsyAppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240426141009_RemoveRelation")]
+    partial class RemoveRelation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

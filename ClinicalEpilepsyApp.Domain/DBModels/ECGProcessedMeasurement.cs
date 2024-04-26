@@ -24,7 +24,7 @@ public class EcgProcessedMeasurement
     // from python processing to c# observer and maui app. Sent every 5 seconds
     // saved in database
     public Guid ProcessedMeasurementId { get; set; }
-    public Patient Patient { get; set; }
+    public string PatientId { get; set; }
     public int[] ProcessedEcgChannel1 { get; set; }
     public int[] ProcessedEcgChannel2 { get; set; }
     public int[] ProcessedEcgChannel3 { get; set; }

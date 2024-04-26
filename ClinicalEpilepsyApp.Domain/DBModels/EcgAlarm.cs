@@ -5,8 +5,8 @@
         // from maui to c# observer and maui app. Sent every 5 seconds
         // saved in database
         public Guid Id { get; set; }
-        public EcgProcessedMeasurement EcgProcessedMeasurement { get; set; }
-        public Patient Patient { get; set; }
+        public Guid EcgProcessedMeasurementId { get; set; }
+        public string PatientId { get; set; }
         public int CSI30 { get; set; }
         public int CSI50 { get; set; }
         public int CSI100 { get; set; }

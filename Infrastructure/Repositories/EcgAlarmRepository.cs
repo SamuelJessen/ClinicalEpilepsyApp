@@ -21,7 +21,7 @@ namespace ClinicalEpilepsyApp.Infrastructure.Repositories
         public async Task<List<EcgAlarm>> GetAlarmsForMeasurementByMeasurementIdAsync(Guid id)
         {
             var alarms = await _dbContext.EcgAlarms
-                .Where(e => e.EcgProcessedMeasurement.ProcessedMeasurementId == id)
+                .Where(e => e.EcgProcessedMeasurementId == id)
                 .ToListAsync();
             return alarms;
         }
