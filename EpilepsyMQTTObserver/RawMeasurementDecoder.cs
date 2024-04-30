@@ -2,7 +2,7 @@
 
 namespace EpilepsyMQTTObserver
 {
-    internal class Decoder
+    internal class RawMeasurementDecoder
     {
         private static bool firstRunAfterConnection = true;
 
@@ -21,7 +21,7 @@ namespace EpilepsyMQTTObserver
         private static float ERROR_CODE_CONVERT_V_BAT_CALCULATION_FAILED = -1f;
         #endregion
 
-        public static DecodedEcgMeasurement DecodeBytes(sbyte[] data)
+        public DecodedEcgMeasurement DecodeBytes(sbyte[] data)
         {
             int index = 0;
             int C1_compression = 0;
