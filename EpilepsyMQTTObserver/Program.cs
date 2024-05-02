@@ -1,15 +1,16 @@
 ﻿using System.Text.Json;
+using ClinicalEpilepsyApp.Domain.DBModels;
 using ClinicalEpilepsyApp.Domain.Models;
 using EpilepsyMQTTObserver;
 using uPLibrary.Networking.M2Mqtt;
 using uPLibrary.Networking.M2Mqtt.Messages;
 
-string brokerAddress = "test.mosquitto.org"; // Replace with your MQTT broker address
-string clientId = Guid.NewGuid().ToString(); // Generate a unique client ID
+string brokerAddress = "test.mosquitto.org"; 
+string clientId = Guid.NewGuid().ToString(); 
 
-var fakepublisher = new FakeMAUIPython();
+//var fakepublisher = new FakeMAUIPython();
 var rawMeasurementDecoder = new RawMeasurementDecoder();
-fakepublisher.RunFakeMQTTClients();
+//fakepublisher.RunFakeMQTTClients();
 
 MqttClient mqttClient = new MqttClient(brokerAddress);
 
@@ -17,22 +18,41 @@ MqttClient mqttClient = new MqttClient(brokerAddress);
 mqttClient.MqttMsgPublishReceived += (sender, e) =>
 {
 	string message = System.Text.Encoding.UTF8.GetString(e.Message);
-    EcgRawMeasurement measurement = JsonSerializer.Deserialize<EcgRawMeasurement>(message)!;
-    var chan1 = new List<int>();
-	var chan2 = new List<int>();
-	var chan3 = new List<int>();
-    foreach (var bytearray in measurement.EcgRawBytes)
+    if (e.Topic == Topics.raw_topic)
     {
-		DecodedEcgMeasurement decoded = rawMeasurementDecoder.DecodeBytes(bytearray);
-        for (int i = 0; i < decoded.DecodedEcgChannel1.Length; i++)
+        Console.WriteLine($"Received message on topic '{e.Topic}': {message}");
+        EcgRawMeasurement measurement = JsonSerializer.Deserialize<EcgRawMeasurement>(message)!;
+        var chan1 = new List<int[]>();
+        var chan2 = new List<int[]>();
+        var chan3 = new List<int[]>();
+        foreach (var bytearray in measurement.EcgRawBytes)
         {
-            chan1.Add(decoded.DecodedEcgChannel1[i]);
-            chan2.Add(decoded.DecodedEcgChannel2[i]);
-            chan3.Add(decoded.DecodedEcgChannel3[i]);
+            DecodedEcgMeasurement decoded = rawMeasurementDecoder.DecodeBytes(bytearray);
+            chan1.Add(decoded.DecodedEcgChannel1);
+            chan2.Add(decoded.DecodedEcgChannel2);
+            chan3.Add(decoded.DecodedEcgChannel3);
         }
+        var decodedBatchMeasurement = new DecodedEcgBatchMeasurement()
+        {
+            Timestamp = measurement.Timestamp,
+            PatientId = measurement.PatientId,
+            DecodedEcgChannel1 = chan1,
+            DecodedEcgChannel2 = chan2,
+            DecodedEcgChannel3 = chan3
+        };
+
+
+        string decodedMessage = JsonSerializer.Serialize(decodedBatchMeasurement);
+        mqttClient.Publish(Topics.decoded_topic, System.Text.Encoding.UTF8.GetBytes(decodedMessage), MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE, false);
     }
 
-    Console.WriteLine($"Received message on topic '{e.Topic}': {message}");
+    if (e.Topic == Topics.processed_topic)
+    {
+        Console.WriteLine($"Received message on topic '{e.Topic}': {message}");
+        EcgProcessedMeasurement measurement = JsonSerializer.Deserialize<EcgProcessedMeasurement>(message)!;
+
+    }
+
 };
 
 // Event handler for connection established

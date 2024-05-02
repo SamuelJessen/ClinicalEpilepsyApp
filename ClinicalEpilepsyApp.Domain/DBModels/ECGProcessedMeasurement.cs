@@ -7,15 +7,11 @@ public class EcgProcessedMeasurement
     public Guid ProcessedMeasurementId { get; set; }
     public string PatientId { get; set; }
     public DateTime StartTime { get; set; }
-    public int[] ProcessedEcgChannel1 { get; set; }
-    public int[] ProcessedEcgChannel2 { get; set; }
-    public int[] ProcessedEcgChannel3 { get; set; }
-};
+    public List<int> ProcessedEcgChannel1 { get; set; }
+    public List<int> ProcessedEcgChannel2 { get; set; }
+    public List<int> ProcessedEcgChannel3 { get; set; }
+}
 
-//topics:
-// ecg_data_group1/processed_measurements
-// ecg_data_group1/measurements
-// ecg_data_group1/alarm_values
 
 
 

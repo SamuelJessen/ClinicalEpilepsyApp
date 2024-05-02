@@ -6,5 +6,6 @@
         public string PatientId { get; set; }
         public DateTime Timestamp { get; set; }
         public List<sbyte[]> EcgRawBytes { get; set; }
+        public int Samples { get; set; }
     }
 }
