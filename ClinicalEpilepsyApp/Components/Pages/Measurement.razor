@@ -11,8 +11,8 @@
 
 <button class="btn btn-primary" @onclick="IncrementCount1">Click me</button>
 
-<div Class="rz-p-0 rz-p-md-12">
-    <RadzenChart>
+<div Class="rz-p-0 rz-p-md-12" style="width: 50%; overflow: auto">
+    <RadzenChart style="width: 100%">
         <RadzenColumnSeries Data="@revenue1" CategoryProperty="Quarter" ValueProperty="Revenue" />
         <RadzenColumnSeries Data="@revenue2" CategoryProperty="Quarter" ValueProperty="Revenue" />
     </RadzenChart>

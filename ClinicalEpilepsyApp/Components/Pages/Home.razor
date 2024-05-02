@@ -4,6 +4,19 @@
 
 <h1>Hello, world!</h1>
 
-Welcome to your new app.
+App is running.
+
+Connection status: @connectionStatus
+
+
+@code {
+	private string connectionStatus = "Disconnected";
+
+	protected override async Task OnInitializedAsync()
+	{
+		await Task.Delay(500);
+		connectionStatus = "Connected";
+	}
+}
 
 
