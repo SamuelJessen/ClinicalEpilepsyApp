@@ -1,9 +1,42 @@
 ﻿@page "/measurement"
+@using ClinicalEpilepsyApp.Domain.DBModels
 @rendermode InteractiveServer
 
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
 
 
 <PageTitle>Measurement</PageTitle>
+
+<h1>Measurements</h1>
+
+@if (measurements == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ProcessedMeasurementId</th>
+                <th>PatientId</th>
+                <th>StartTime</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var measurement in measurements)
+            {
+                <tr>
+                    <td><a href="@($"measurements/{measurement.ProcessedMeasurementId}")">@measurement.ProcessedMeasurementId</a></td>
+                    <td>@measurement.PatientId</td>
+                    <td>@measurement.StartTime</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <button class="btn btn-primary" @onclick="NavigateToMeasurementGraph">Show graph</button>
+}
 
 <h1>Counter2</h1>
 
@@ -93,6 +126,19 @@
 </div>
 
 @code {
+    private List<EcgProcessedMeasurement> measurements;
+
+    protected override async Task OnInitializedAsync()
+    {
+        measurements = await HttpClient.GetFromJsonAsync<List<EcgProcessedMeasurement>>("https://localhost:7128/measurements") ?? new List<EcgProcessedMeasurement>();
+    }
+
+    private void NavigateToMeasurementGraph()
+    {
+        NavigationManager.NavigateTo("/add-patient");
+    }
+    
+    
     private int currentCount = 0;
     private int currentCount2 = 0;
     private string currentButton = "";
