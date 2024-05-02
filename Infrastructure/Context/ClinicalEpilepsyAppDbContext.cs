@@ -1,4 +1,4 @@
-﻿using ClinicalEpilepsyApp.Domain.Models;
+﻿using ClinicalEpilepsyApp.Domain.DBModels;
 using Microsoft.EntityFrameworkCore;
 
 namespace ClinicalEpilepsyApp.Infrastructure.Context
@@ -10,11 +10,15 @@ namespace ClinicalEpilepsyApp.Infrastructure.Context
 		}
 
 		public DbSet<Patient> Patients { get; set; }
+		public DbSet<EcgAlarm> EcgAlarms { get; set; }
+		public DbSet<EcgProcessedMeasurement> EcgProcessedMeasurements { get; set; }
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
 			modelBuilder.Entity<Patient>().HasKey(p => p.Id);
-		}
+			modelBuilder.Entity<EcgAlarm>().HasKey(e => e.Id);
+			modelBuilder.Entity<EcgProcessedMeasurement>().HasKey(e => e.ProcessedMeasurementId);
+        }
 
 		
 	}

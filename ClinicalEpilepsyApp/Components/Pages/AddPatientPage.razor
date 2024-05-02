@@ -1,4 +1,6 @@
 ﻿@page "/add-patient"
+@using Microsoft.AspNetCore.Components
+@using ClinicalEpilepsyApp.Domain.DBModels
 @rendermode InteractiveServer
 
 @inject HttpClient HttpClient
@@ -12,7 +14,11 @@
 </div>
 <div class="form-group">
     <label for="csiInput">CSI:</label>
-    <input type="number" class="form-control" id="csiInput" @bind="@patient.CSI" />
+    <input type="number" class="form-control" id="csiInput" @bind="@patient.CSIThreshold" />
+</div>
+<div class="form-group">
+    <label for="csiInput">CSI:</label>
+    <input type="number" class="form-control" id="csiInput" @bind="@patient.ModCSIThreshold" />
 </div>
 <div class="form-group">
     <label for="idInput">ID:</label>
@@ -41,12 +47,5 @@
         }
     }
 
-    public class Patient
-    {
-        public string Id { get; set; }
-        public string Name { get; set; }
-        public int CSI { get; set; }
-        public string Password { get; set; }
-    }
 }
 

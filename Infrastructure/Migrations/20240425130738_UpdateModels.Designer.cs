@@ -4,6 +4,7 @@ using ClinicalEpilepsyApp.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ClinicalEpilepsyApp.Infrastructure.Migrations
 {
     [DbContext(typeof(ClinicalEpilepsyAppDbContext))]
-    partial class ClinicalEpilepsyAppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240425130738_UpdateModels")]
+    partial class UpdateModels
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -40,7 +43,7 @@ namespace ClinicalEpilepsyApp.Infrastructure.Migrations
                     b.Property<int>("CSI50")
                         .HasColumnType("int");
 
-                    b.Property<Guid>("EcgProcessedMeasurementId")
+                    b.Property<Guid>("EcgProcessedMeasurementProcessedMeasurementId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("ModCSI100")
@@ -56,13 +59,16 @@ namespace ClinicalEpilepsyApp.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("PatientId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<int>("PatientModCSIThreshold")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("EcgProcessedMeasurementProcessedMeasurementId");
+
+                    b.HasIndex("PatientId");
 
                     b.ToTable("EcgAlarms");
                 });
@@ -74,8 +80,7 @@ namespace ClinicalEpilepsyApp.Infrastructure.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("PatientId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ProcessedEcgChannel1")
                         .IsRequired()
@@ -89,10 +94,9 @@ namespace ClinicalEpilepsyApp.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("StartTime")
-                        .HasColumnType("datetime2");
-
                     b.HasKey("ProcessedMeasurementId");
+
+                    b.HasIndex("PatientId");
 
                     b.ToTable("EcgProcessedMeasurements");
                 });
@@ -102,10 +106,7 @@ namespace ClinicalEpilepsyApp.Infrastructure.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<int>("CSIThreshold")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ModCSIThreshold")
+                    b.Property<int>("CSI")
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
@@ -119,6 +120,39 @@ namespace ClinicalEpilepsyApp.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Patients");
+                });
+
+            modelBuilder.Entity("ClinicalEpilepsyApp.Domain.DBModels.EcgAlarm", b =>
+                {
+                    b.HasOne("ClinicalEpilepsyApp.Domain.DBModels.EcgProcessedMeasurement", "EcgProcessedMeasurement")
+                        .WithMany()
+                        .HasForeignKey("EcgProcessedMeasurementProcessedMeasurementId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ClinicalEpilepsyApp.Domain.DBModels.Patient", "Patient")
+                        .WithMany("EcgAlarms")
+                        .HasForeignKey("PatientId");
+
+                    b.Navigation("EcgProcessedMeasurement");
+
+                    b.Navigation("Patient");
+                });
+
+            modelBuilder.Entity("ClinicalEpilepsyApp.Domain.DBModels.EcgProcessedMeasurement", b =>
+                {
+                    b.HasOne("ClinicalEpilepsyApp.Domain.DBModels.Patient", "Patient")
+                        .WithMany("EcgProcessedMeasurements")
+                        .HasForeignKey("PatientId");
+
+                    b.Navigation("Patient");
+                });
+
+            modelBuilder.Entity("ClinicalEpilepsyApp.Domain.DBModels.Patient", b =>
+                {
+                    b.Navigation("EcgAlarms");
+
+                    b.Navigation("EcgProcessedMeasurements");
                 });
 #pragma warning restore 612, 618
         }

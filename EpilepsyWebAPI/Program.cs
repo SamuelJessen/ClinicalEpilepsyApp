@@ -12,6 +12,8 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<ClinicalEpilepsyAppDbContext>(options =>
 	options.UseSqlServer(builder.Configuration.GetConnectionString("ClinicalEpilepsyDbContext"), options => options.EnableRetryOnFailure()));
 builder.Services.AddScoped<PatientRepository>();
+builder.Services.AddScoped<EcgAlarmRepository>();
+builder.Services.AddScoped<EcgProcessedMeasurementRepository>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
