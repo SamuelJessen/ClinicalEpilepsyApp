@@ -1,325 +1,119 @@
-﻿@page "/measurement"
+﻿@page "/measurements/measurement/{MeasurementId}"
 @using ClinicalEpilepsyApp.Domain.DBModels
 @rendermode InteractiveServer
 
 @inject HttpClient HttpClient
 @inject NavigationManager NavigationManager
 
+<h3>Measurement : @MeasurementId</h3>
 
-<PageTitle>Measurement</PageTitle>
+<h4>Start time for measurement : @StartTime</h4>
 
-<h1>Measurements</h1>
-
-@if (measurements == null)
+@if (measurement == null)
 {
     <p>Loading...</p>
 }
 else
 {
-    <table class="table">
-        <thead>
-            <tr>
-                <th>ProcessedMeasurementId</th>
-                <th>PatientId</th>
-                <th>StartTime</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var measurement in measurements)
-            {
-                <tr>
-                    <td><a href="@($"measurements/{measurement.ProcessedMeasurementId}")">@measurement.ProcessedMeasurementId</a></td>
-                    <td>@measurement.PatientId</td>
-                    <td>@measurement.StartTime</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-    <button class="btn btn-primary" @onclick="NavigateToMeasurementGraph">Show graph</button>
-}
+    <div Class="rz-p-0 rz-p-md-12" style="width: 100%; overflow: auto">
+        <RadzenChart style="width: auto">
+            <RadzenColumnSeries Data="@EcgChannel1" CategoryProperty="Time" ValueProperty="Voltage" />
+            <RadzenColumnSeries Data="@EcgChannel2" CategoryProperty="Time" ValueProperty="Voltage" />
+            <RadzenColumnSeries Data="@EcgChannel3" CategoryProperty="Time" ValueProperty="Voltage" />
+        </RadzenChart>
+    </div>
 
-<h1>Counter2</h1>
-
-<p role="status">Current count: @currentCount2</p>
-
-<button class="btn btn-primary" @onclick="IncrementCount1">Click me</button>
-
-<div Class="rz-p-0 rz-p-md-12" style="width: 50%; overflow: auto">
-    <RadzenChart style="width: 100%">
-        <RadzenColumnSeries Data="@revenue1" CategoryProperty="Quarter" ValueProperty="Revenue" />
-        <RadzenColumnSeries Data="@revenue2" CategoryProperty="Quarter" ValueProperty="Revenue" />
-    </RadzenChart>
-</div>
-
-
-<h1>Counter5</h1>
-
-<p role="status">Current count: @currentCount</p>
-
-<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
-
-<RadzenText TextStyle="TextStyle.Subtitle1" TagName="TagName.H3" class="rz-mt-4">Icon only button</RadzenText>
-<RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem" Wrap="FlexWrap.Wrap">
-    <RadzenButton Click=@(args => OnClick("Primary icon button")) Icon="add_circle_outline" ButtonStyle="ButtonStyle.Primary" />
-    <RadzenButton Click=@(args => OnClick("Secondary icon button")) Icon="add_circle_outline" ButtonStyle="ButtonStyle.Secondary" />
-    <RadzenButton Click=@(args => OnClick("Light icon button")) Icon="refresh" ButtonStyle="ButtonStyle.Light" />
-    <RadzenButton Click=@(args => OnClick("Dark icon button")) Icon="refresh" ButtonStyle="ButtonStyle.Dark" />
-    <RadzenButton Click=@(args => OnClick("Info icon button")) Icon="privacy_tip" ButtonStyle="ButtonStyle.Info" />
-    <RadzenButton Click=@(args => OnClick("Success icon button ")) Icon="check_circle" ButtonStyle="ButtonStyle.Success" />
-    <RadzenButton Click=@(args => OnClick("Warning icon button ")) Icon="warning_amber" ButtonStyle="ButtonStyle.Warning" />
-    <RadzenButton Click=@(args => OnClick("Danger icon button")) Icon="report" ButtonStyle="ButtonStyle.Danger" />
-</RadzenStack>
-
-<RadzenText TextStyle="TextStyle.Subtitle1" TagName="TagName.H3" class="rz-mt-4">Icon and text button</RadzenText>
-<RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem" Wrap="FlexWrap.Wrap">
-    <RadzenButton Click=@(args => OnClick("Primary button with text and icon")) Text="Add New" Icon="add_circle_outline" ButtonStyle="ButtonStyle.Primary" />
-    <RadzenButton Click=@(args => OnClick("Secondary button with text and icon")) Text="Add New" Icon="add_circle_outline" ButtonStyle="ButtonStyle.Secondary" />
-    <RadzenButton Click=@(args => OnClick("Light button with text and icon")) Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Light" />
-    <RadzenButton Click=@(args => OnClick("Dark button with text and icon")) Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Dark" />
-    <RadzenButton Click=@(args => OnClick("Info button with text and icon")) Text="Privacy tip" Icon="privacy_tip" ButtonStyle="ButtonStyle.Info" />
-    <RadzenButton Click=@(args => OnClick("Success button with text and icon")) Text="Publish" Icon="check_circle" ButtonStyle="ButtonStyle.Success" />
-    <RadzenButton Click=@(args => OnClick("Warning button with text and icon")) Text="Warning" Icon="warning_amber" ButtonStyle="ButtonStyle.Warning" />
-    <RadzenButton Click=@(args => OnClick("Danger button with text and icon")) Text="Report" Icon="report" ButtonStyle="ButtonStyle.Danger" />
-</RadzenStack>
-
-<RadzenText TextStyle="TextStyle.Subtitle1" TagName="TagName.H3" class="rz-mt-4">Images</RadzenText>
-<RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="1rem" Wrap="FlexWrap.Wrap">
-    <RadzenButton Click=@(args => OnClick("Button with image")) Image="images/radzen-nuget.png" ButtonStyle="ButtonStyle.Light" />
-    <RadzenButton Click=@(args => OnClick("Button with content")) Image="images/radzen-nuget.png" ButtonStyle="ButtonStyle.Light">
-        <span class="rz-button-text">Button with content</span>
-        <RadzenImage Path="images/radzen-nuget.png" Style="width: 20px; height: 20px; margin-left: 8px;" />
-    </RadzenButton>
-</RadzenStack>
-
-<p role="status">Chosen button: @currentButton</p>
-
-@using System.Globalization
-
-<div class="container">
-    <div class="row">
-        <div class="col-sm-12 my-5">
-            <RadzenCard class="w-100 mb-4" Style="display: flex; align-items: center; gap: 0.5rem">
-                <RadzenCheckBox @bind-Value="@smooth" Name="smooth"></RadzenCheckBox>
-                <RadzenLabel Text="Smooth" Component="smooth" Style="margin-right: 1rem;" />
-                <RadzenCheckBox @bind-Value="@showDataLabels" Name="dataLabels"></RadzenCheckBox>
-                <RadzenLabel Text="Show Data Labels" Component="dataLabels" Style="margin-right: 1rem;" />
-                <RadzenCheckBox @bind-Value="@showMarkers" Name="markers"></RadzenCheckBox>
-                <RadzenLabel Text="Show Markers" Component="markers" />
-            </RadzenCard>
-            <RadzenChart>
-                <RadzenLineSeries Smooth="@smooth" Data="@revenue2023" CategoryProperty="Date" Title="2023" LineType="LineType.Dashed" ValueProperty="Revenue">
-                    <RadzenMarkers Visible="@showMarkers" MarkerType="MarkerType.Square" />
-                    <RadzenSeriesDataLabels Visible="@showDataLabels" />
-                </RadzenLineSeries>
-                <RadzenLineSeries Smooth="@smooth" Data="@revenue2024" CategoryProperty="Date" Title="2024" ValueProperty="Revenue">
-                    <RadzenMarkers Visible="@showMarkers" MarkerType="MarkerType.Circle" />
-                    <RadzenSeriesDataLabels Visible="@showDataLabels" />
-                </RadzenLineSeries>
-                <RadzenCategoryAxis Padding="20" />
-                <RadzenValueAxis Formatter="@FormatAsUSD">
-                    <RadzenGridLines Visible="true" />
-                    <RadzenAxisTitle Text="Revenue in USD" />
-                </RadzenValueAxis>
-            </RadzenChart>
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-12 my-5">
+                <RadzenCard class="w-100 mb-4" Style="display: flex; align-items: center; gap: 0.5rem">
+                    <RadzenCheckBox @bind-Value="@smooth" Name="smooth"></RadzenCheckBox>
+                    <RadzenLabel Text="Smooth" Component="smooth" Style="margin-right: 1rem;" />
+                    <RadzenCheckBox @bind-Value="@showDataLabels" Name="dataLabels"></RadzenCheckBox>
+                    <RadzenLabel Text="Show Data Labels" Component="dataLabels" Style="margin-right: 1rem;" />
+                    <RadzenCheckBox @bind-Value="@showMarkers" Name="markers"></RadzenCheckBox>
+                    <RadzenLabel Text="Show Markers" Component="markers" />
+                </RadzenCard>
+                <RadzenChart>
+                    <RadzenLineSeries Smooth="@smooth" Data="@EcgChannel1" CategoryProperty="Time" Title="Channel 1" LineType="LineType.Dashed" ValueProperty="Voltage">
+                        <RadzenMarkers Visible="@showMarkers" MarkerType="MarkerType.Square" />
+                        <RadzenSeriesDataLabels Visible="@showDataLabels" />
+                    </RadzenLineSeries>
+                    <RadzenLineSeries Smooth="@smooth" Data="@EcgChannel2" CategoryProperty="Time" Title="Channel 2" ValueProperty="Voltage">
+                        <RadzenMarkers Visible="@showMarkers" MarkerType="MarkerType.Circle" />
+                        <RadzenSeriesDataLabels Visible="@showDataLabels" />
+                    </RadzenLineSeries>
+                    <RadzenLineSeries Smooth="@smooth" Data="@EcgChannel3" CategoryProperty="Time" Title="Channel 2" ValueProperty="Voltage">
+                        <RadzenMarkers Visible="@showMarkers" MarkerType="MarkerType.Circle" />
+                        <RadzenSeriesDataLabels Visible="@showDataLabels" />
+                    </RadzenLineSeries>
+                    <RadzenCategoryAxis Padding="20" />
+                    @* <RadzenValueAxis Formatter="@FormatAsUSD">
+                        <RadzenGridLines Visible="true" />
+                        <RadzenAxisTitle Text="Revenue in USD" />
+                    </RadzenValueAxis> *@
+                </RadzenChart>
+            </div>
         </div>
     </div>
-</div>
+
+}
 
 @code {
-    private List<EcgProcessedMeasurement> measurements;
+    [Parameter]
+    public string MeasurementId { get; set; }
 
-    protected override async Task OnInitializedAsync()
+    private EcgProcessedMeasurement measurement;
+    public List<String> dateTimes { get; set; }
+    public DateTime StartTime { get; set; }
+    private EcgMeasurement[] EcgChannel1 { get; set; }
+    private EcgMeasurement[] EcgChannel2 { get; set; }
+    private EcgMeasurement[] EcgChannel3 { get; set; }
+
+    class EcgMeasurement
     {
-        measurements = await HttpClient.GetFromJsonAsync<List<EcgProcessedMeasurement>>("https://localhost:7128/measurements") ?? new List<EcgProcessedMeasurement>();
+        public String Time { get; set; }
+        public double Voltage { get; set; }
     }
-
-    private void NavigateToMeasurementGraph()
-    {
-        NavigationManager.NavigateTo("/add-patient");
-    }
-    
-    
-    private int currentCount = 0;
-    private int currentCount2 = 0;
-    private string currentButton = "";
-
-    private void IncrementCount()
-    {
-        currentCount++;
-    }
-
-    private void IncrementCount1()
-    {
-        currentCount2++;
-    }
-
-    private void OnClick(string message)
-    {
-        currentButton = message;
-    }
-
-    class DataItem
-    {
-        public string Quarter { get; set; }
-        public double Revenue { get; set; }
-    }
-
-    DataItem[] revenue1 = new DataItem[]
-    {
-      new DataItem { Quarter = "Q1", Revenue = 234000 },
-      new DataItem { Quarter = "Q2", Revenue = 284000 },
-      new DataItem { Quarter = "Q3", Revenue = 274000 },
-      new DataItem { Quarter = "Q4", Revenue = 294000 }
-    };
-
-    DataItem[] revenue2 = new DataItem[]
-    {
-      new DataItem { Quarter = "Q1", Revenue = 324000 },
-      new DataItem { Quarter = "Q2", Revenue = 224000 },
-      new DataItem { Quarter = "Q3", Revenue = 444000 },
-      new DataItem { Quarter = "Q4", Revenue = 564000 }
-    };
 
     bool smooth = false;
     bool showDataLabels = false;
     bool showMarkers = true;
 
-    class DataItem1
+    protected override async Task OnInitializedAsync()
     {
-        public string Date { get; set; }
-        public double Revenue { get; set; }
+        measurement = await GetMeasurementDetails(MeasurementId);
+        StartTime = measurement.StartTime;
+
+        EcgChannel1 = new EcgMeasurement[measurement.ProcessedEcgChannel1.Count];
+        EcgChannel2 = new EcgMeasurement[measurement.ProcessedEcgChannel2.Count];
+        EcgChannel3 = new EcgMeasurement[measurement.ProcessedEcgChannel3.Count];
+
+        // Prepared for variations in sample rate
+        GenerateTimeStamps(252);
     }
 
-    string FormatAsUSD(object value)
+    private async Task<EcgProcessedMeasurement> GetMeasurementDetails(string measurementId)
     {
-        return ((double)value).ToString("C0", CultureInfo.CreateSpecificCulture("en-US"));
+        return await HttpClient.GetFromJsonAsync<EcgProcessedMeasurement>($"https://localhost:7128/measurements/{measurementId}");
     }
 
-    DataItem1[] revenue2023 = new DataItem1[] {
-        new DataItem1
-        {
-            Date = "Jan",
-            Revenue = 234000
-        },
-        new DataItem1
-        {
-            Date = "Feb",
-            Revenue = 269000
-        },
-        new DataItem1
-        {
-            Date = "Mar",
-            Revenue = 233000
-        },
-        new DataItem1
-        {
-            Date = "Apr",
-            Revenue = 244000
-        },
-        new DataItem1
-        {
-            Date = "May",
-            Revenue = 214000
-        },
-        new DataItem1
-        {
-            Date = "Jun",
-            Revenue = 253000
-        },
-        new DataItem1
-        {
-            Date = "Jul",
-            Revenue = 274000
-        },
-        new DataItem1
-        {
-            Date = "Aug",
-            Revenue = 284000
-        },
-        new DataItem1
-        {
-            Date = "Sept",
-            Revenue = 273000
-        },
-        new DataItem1
-        {
-            Date = "Oct",
-            Revenue = 282000
-        },
-        new DataItem1
-        {
-            Date = "Nov",
-            Revenue = 289000
-        },
-        new DataItem1
-        {
-            Date = "Dec",
-            Revenue = 294000
-        }
-    };
+    public List<String> GenerateTimeStamps(int sampleRate)
+    {
+        List<String> timestamps = new List<String>();
+        // Calculate the time interval between each sample
+        double timeInterval = 1.0 / sampleRate;
 
-    DataItem1[] revenue2024 = new DataItem1[] {
-        new DataItem1
+        // Generate timestamps for each sample based on the start time and time interval
+        for (int i = 0; i < measurement.ProcessedEcgChannel1.Count; i++)
         {
-            Date = "Jan",
-            Revenue = 334000
-        },
-        new DataItem1
-        {
-            Date = "Feb",
-            Revenue = 369000
-        },
-        new DataItem1
-        {
-            Date = "Mar",
-            Revenue = 333000
-        },
-        new DataItem1
-        {
-            Date = "Apr",
-            Revenue = 344000
-        },
-        new DataItem1
-        {
-            Date = "May",
-            Revenue = 314000
-        },
-        new DataItem1
-        {
-            Date = "Jun",
-            Revenue = 353000
-        },
-        new DataItem1
-        {
-            Date = "Jul",
-            Revenue = 374000
-        },
-        new DataItem1
-        {
-            Date = "Aug",
-            Revenue = 384000
-        },
-        new DataItem1
-        {
-            Date = "Sept",
-            Revenue = 373000
-        },
-        new DataItem1
-        {
-            Date = "Oct",
-            Revenue = 382000
-        },
-        new DataItem1
-        {
-            Date = "Nov",
-            Revenue = 389000
-        },
-        new DataItem1
-        {
-            Date = "Dec",
-            Revenue = 394000
+            double seconds = i * timeInterval;
+            timestamps.Add(StartTime.AddSeconds(seconds).ToString("hh:mm:ss.fff"));
+            EcgChannel1[i] = new EcgMeasurement { Time = timestamps[i], Voltage = measurement.ProcessedEcgChannel1[i] };
+            EcgChannel2[i] = new EcgMeasurement { Time = timestamps[i], Voltage = measurement.ProcessedEcgChannel2[i] };
+            EcgChannel3[i] = new EcgMeasurement { Time = timestamps[i], Voltage = measurement.ProcessedEcgChannel3[i] };
         }
-    };
+        dateTimes = timestamps;
+        return timestamps;
+    }
 }
-
-
