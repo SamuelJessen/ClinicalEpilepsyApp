@@ -46,16 +46,10 @@ namespace ClinicalEpilepsyApp.Infrastructure.Migrations
                     b.Property<int>("ModCSI100")
                         .HasColumnType("int");
 
-                    b.Property<int>("ModCSI30")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ModCSI50")
-                        .HasColumnType("int");
-
                     b.Property<int>("PatientCSIThreshold")
                         .HasColumnType("int");
 
-                    b.Property<string>("PatientId")
+                    b.Property<string>("PatientID")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -73,21 +67,21 @@ namespace ClinicalEpilepsyApp.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("PatientId")
+                    b.Property<string>("PatientID")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ProcessedEcgChannel1")
+                    b.Property<byte[]>("ProcessedEcgChannel1")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("varbinary(max)");
 
-                    b.Property<string>("ProcessedEcgChannel2")
+                    b.Property<byte[]>("ProcessedEcgChannel2")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("varbinary(max)");
 
-                    b.Property<string>("ProcessedEcgChannel3")
+                    b.Property<byte[]>("ProcessedEcgChannel3")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("varbinary(max)");
 
                     b.Property<DateTime>("StartTime")
                         .HasColumnType("datetime2");
