@@ -6,12 +6,10 @@
         // saved in database
         public Guid Id { get; set; }
         public Guid EcgProcessedMeasurementId { get; set; }
-        public string PatientId { get; set; }
+        public string PatientID { get; set; }
         public int CSI30 { get; set; }
         public int CSI50 { get; set; }
         public int CSI100 { get; set; }
-        public int ModCSI30 { get; set; }
-        public int ModCSI50 { get; set; }
         public int ModCSI100 { get; set; }
         public int PatientCSIThreshold { get; set; }
         public int PatientModCSIThreshold { get; set; }

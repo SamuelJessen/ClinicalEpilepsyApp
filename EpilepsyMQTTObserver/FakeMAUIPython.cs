@@ -53,7 +53,7 @@ public class FakeMAUIPython
         Random rnd = new Random();
         return new PythonEcgProcessedMeasurement
         {
-            PatientId = "123456-0000",
+            PatientID = "123456-0000",
             TimeStamp = DateTime.Now,
             ProcessedEcgChannel1 = new int[] { rnd.Next(0, 1023), rnd.Next(0, 1023), rnd.Next(0, 1023) },
             ProcessedEcgChannel2 = new int[] { rnd.Next(0, 1023), rnd.Next(0, 1023), rnd.Next(0, 1023) },
