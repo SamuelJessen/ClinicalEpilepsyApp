@@ -2,10 +2,11 @@
 import paho.mqtt.client as mqtt  # pip install paho-mqtt
 from QRSDetector import QRSDetector  # pip install QRSDetector
 from hrvanalysis import *  # pip install hrvanalysis
-
+import scipy.signal as signal  # pip install scipy
 import numpy as np  # pip install numpy
 import json  # pip install json
 import datetime  # pip install datetime
+import pywt  # pip install pywt
 
 import os
 
@@ -13,33 +14,16 @@ import os
 # region Step 0: Setup the MQTT client
 
 # region Topics
-
-pre = "Dev/"
-pre = ""
-
-Topic_GetVersion = pre + "ECG/GetVersion"
-
-Topic_Status = pre + "ECG/Status/#"
-Topic_Status_CSSURE = pre + "ECG/Status/CSSURE"
-Topic_Version_CSSURE = pre + "ECG/Versíon/CSSURE"
-
-Topic_Status_Python = pre + "ECG/Status/Python"
-Topic_Version_Python = pre + "ECG/Version/Python"
-
-Topic_Series_Raw = pre + "ECG/Series/CSSURE2PYTHON"
-Topic_Series_Filtred = pre + "ECG/Series/PYTHON2CSSURE"
-
+Topic_Decoded_Measurement = "ecg_data_group1/decoded_measurements"
+Topic_Processed_Measurement = "ecg_data_group1/processed_measurements"
 # endregion
 
 
 # will subscribe to the following topics on the broker
 # and publish the last will message on disconnect
 def on_connect(client, userdata, flags, rc):
-    client.subscribe(Topic_Status)
-    client.subscribe(Topic_Series_Raw)
-    client.subscribe(Topic_GetVersion)
-    client.publish(Topic_Status_Python, "Online".encode("utf-8"), qos=0, retain=True)
-    client.publish(Topic_Version_Python, qos=0, retain=True)
+    client.subscribe(Topic_Decoded_Measurement)
+    client.subscribe(Topic_Processed_Measurement)
 
     print("Connected with result code " + str(rc))
 
@@ -51,17 +35,8 @@ def on_message(client, userdata, msg):
     messageEncoded = msg.payload
     message = messageEncoded.decode("utf-8")
 
-    # Switch case for the different topics
-    if msg.topic == Topic_Status_CSSURE:  # ASP.Net status
-        print("ASP.Net status: " + str(message))
-        """
-        Add some logic here to handle if the ASP.Net status gets offline
-        """
-
-    elif msg.topic == Topic_Series_Raw:  # Handle the raw data
+    if msg.topic == Topic_Decoded_Measurement:  # Handle the raw data
         ProcessingAlgorihtm(message)
-    elif msg.topic == Topic_GetVersion:  # Handle if somebody req a version
-        client.publish(Topic_Version_Python, qos=0, retain=True)
     else:
         print("Unknown topic: " + msg.topic + "\n\t" + str(message))
 
@@ -91,11 +66,11 @@ def on_subscribe(client, userdata, mid, granted_qos):
 # Deserialize the json string
 def DeserializeJson(ms):
     # Ready for the real data type, but it requires some changes to match the new dataformat
-    # ecgObject = json.loads(ms)
+    ecgObject = json.loads(ms)
 
     # Read in a ECG from af csv file
-    ecgObject = np.genfromtxt(ms, delimiter=",")
-    ecgObject = ecgObject[1:500, 1]
+    # ecgObject = np.genfromtxt(ms, delimiter=",")
+    # ecgObject = ecgObject[1:500, 1]
 
     return ecgObject
 
@@ -103,41 +78,9 @@ def DeserializeJson(ms):
 # endregion
 
 
-# test metode der kan slettes
-def PlotData(ecgObject):
-    import matplotlib.pyplot as plt
-
-    # Plot the data
-    plt.figure()
-    plt.plot(ecgObject)
-    plt.title("ECG Channel II")
-    plt.show()
-
-
-# test metode der kan slettes
-def CleanData(ecgObject):
-    import scipy.signal as signal
-    import matplotlib.pyplot as plt
-
-    # Apply a notch filter at 50 Hz
-    fs = 250  # Sampling frequency
-    f0 = 50  # Notch frequency
-    Q = 30  # Quality factor
-
-    b, a = signal.iirnotch(f0, Q, fs)
-    filtered_ecg = signal.lfilter(b, a, ecgObject)
-
-    # Plot the filtered ECG data
-    # plt.figure()
-    # plt.plot(filtered_ecg[1:500])
-    # plt.title("Filtered ECG Channel II")
-    # plt.show()
-    return filtered_ecg
-
-
 # region Step 2: Rearrange the data
 def RearangeData(ecgdata):
-    rawdata = ecgdata["ECGChannel1"]
+    rawdata = ecgdata["DecodedEcgChannel1"]
 
     rawdata = [x for x in rawdata if x is not None]
     rawdatalist = list()
@@ -154,7 +97,7 @@ def RearangeData(ecgdata):
 
     ch1 = rawdata
 
-    rawdata = ecgdata["ECGChannel2"]
+    rawdata = ecgdata["DecodedEcgChannel2"]
 
     rawdata = [x for x in rawdata if x is not None]
     rawdatalist = list()
@@ -171,7 +114,7 @@ def RearangeData(ecgdata):
 
     ch2 = rawdata
 
-    rawdata = ecgdata["ECGChannel3"]
+    rawdata = ecgdata["DecodedEcgChannel3"]
 
     rawdata = [x for x in rawdata if x is not None]
     rawdatalist = list()
@@ -191,19 +134,14 @@ def RearangeData(ecgdata):
     return ch1, ch2, ch3
 
 
-## Filtrering skal ske efter region step 2, så der videregives filteret data herefter.
-
-
 def CWT_filter(ch1, ch2, ch3):
-    import pywt  # pip install pywt
-    import matplotlib.pyplot as plt
 
     channels = [ch1, ch2, ch3]
     filtered_data_dict = dict()
-    filtered_data_list = []
+
     # Define the wavelet
     wavelet = "bior3.1"
-    for i, channel in enumerate(channels):  # RV: Skal der filtreres på alle 3 kanaler??
+    for i, channel in enumerate(channels):
         # Perform the wavelet transform
         coeffs = pywt.swt(channel[:, 1], wavelet, level=3)
 
@@ -221,24 +159,25 @@ def CWT_filter(ch1, ch2, ch3):
         # Reconstruct the filtered signal
         filtered_data = pywt.iswt(filtered_coeffs, wavelet)
 
+        # Define the bandpass filter parameters
+        order = 4
+        low_freq = 0.5
+        high_freq = 40
+
+        # Create the high pass Butterworth filter
+        b, a = signal.butter(order, [low_freq, high_freq], fs=250, btype="band")
+
+        # Apply the filter to the filtered data
+        filtered_data = signal.filtfilt(b, a, filtered_data)
+
         # Add the filtered data to the dictionary with a key named after the iteration number
-        filtered_data_dict[f"ch{i}_filtered"] = filtered_data
-        # filtered_data_list.append(filtered_data)
+        filtered_data_dict[f"ch{i+1}_filtered"] = filtered_data
 
     return filtered_data_dict
 
 
 # endregion
 
-## test region - kan slettes
-ecgObject = DeserializeJson(
-    r"C:\Users\rasmu\Documents\Biomedicinsk teknologi\1. semester\Telemonitoreringsprojekt\ECG_log_12.29.50 - 05.05.22.txt"
-)
-# PlotData(ecgObject)
-filteredData = CWT_filter(ecgObject)
-PlotData(filteredData)
-print(filteredData.keys())
-## test region end
 
 # region Step 3 + 4: QRSDetector + RR-interval => CSI and ModCSI
 
@@ -325,6 +264,11 @@ def CalcParametres(data):
         param["csi"] = NonLineardomainfeatures["csi"]
         param["Modified_csi"] = NonLineardomainfeatures["Modified_csi"]
         param.update(NonLineardomainfeatures)
+    else:
+        param["CSI30"] = None
+        param["CSI50"] = None
+        param["CSI100"] = None
+        param["ModCSI100"] = None
 
     # Add the RR intervals and the filtered ecg to the dictionary
     # param['rr_intervals_ms'] = rr_interval
@@ -377,19 +321,20 @@ def DecissionSupport(CSINormMax, ModCSINormMax, ch):
 # region Step 6: Rearrange the data
 
 
-def RearangeDataBack(
-    ecgObject, Findings_ch1, Findings_ch2, Findings_ch3, timeDifferent, Alarm
-):
+def RearangeDataBack(ecgObject, Findings_ch1, Filtered_data):
     allParametres = dict()
 
     allParametres["PatientID"] = ecgObject["PatientID"]
     allParametres["TimeStamp"] = ecgObject["TimeStamp"][-1]
-    allParametres["TimeProcess_s"] = timeDifferent
-    allParametres["SeriesLength_s"] = len(ecgObject["TimeStamp"]) * 12 / 250
-    allParametres["Alarm"] = Alarm
-    allParametres["ECGChannel1"] = Findings_ch1
-    allParametres["ECGChannel2"] = Findings_ch2
-    allParametres["ECGChannel3"] = Findings_ch3
+    # Sender kun findings for ch1
+    allParametres["CSI30"] = Findings_ch1["CSI30"]
+    allParametres["CSI50"] = Findings_ch1["CSI50"]
+    allParametres["CSI100"] = Findings_ch1["CSI100"]
+    allParametres["ModCSI100"] = Findings_ch1["ModCSI100"]
+    # Sender filtreret data for all kanaler
+    allParametres["ProcessedEcgChannel1"] = Filtered_data["ch1_filtered"]
+    allParametres["ProcessedEcgChannel2"] = Filtered_data["ch2_filtered"]
+    allParametres["ProcessedEcgChannel3"] = Filtered_data["ch3_filtered"]
     return allParametres
 
 
@@ -407,10 +352,10 @@ def EncodeJson(dict):
 
 def PublishData(json_object):
     try:
-        client.publish(Topic_Series_Filtred, json_object)
+        client.publish(Topic_Processed_Measurement, json_object)
     except:  # If the data is not in the correct format
         client.publish(
-            Topic_Series_Filtred, "Error".encode("utf-8"), qos=1, retain=True
+            Topic_Processed_Measurement, "Error".encode("utf-8"), qos=1, retain=True
         )
 
 
@@ -420,39 +365,21 @@ def PublishData(json_object):
 # region Call the functions
 def ProcessingAlgorihtm(message):
     try:
-        t1 = datetime.datetime.now().timestamp()
+        # Save the JSON message locally
+        with open("message.json", "w") as file:
+            file.write(message)
         ecgObject = DeserializeJson(message)
         ch1, ch2, ch3 = RearangeData(ecgObject)
-        timeDifferent = TimeDiffer(ecgObject)
-        if timeDifferent > 1000:
-            client.publish(
-                Topic_Series_Filtred, "TimeError".encode("utf-8"), qos=1, retain=True
-            )
-        else:
-            Findings_ch1 = CalcParametres(ch1)
-            Findings_ch2 = CalcParametres(ch2)
-            Findings_ch3 = CalcParametres(ch3)
+        data_filt = CWT_filter(ch1, ch2, ch3)
+        Findings_ch1 = CalcParametres(data_filt["ch1_filtered"])
 
-            Alarm = DecissionSupport(
-                ecgObject["CSINormMax"], ecgObject["ModCSINormMax"], Findings_ch1
-            )
-
-            t2 = datetime.datetime.now().timestamp()
-            timeDifferent = t2 - t1
-            allParametres = RearangeDataBack(
-                ecgObject,
-                Findings_ch1,
-                Findings_ch2,
-                Findings_ch3,
-                timeDifferent,
-                Alarm,
-            )
-            json_object = EncodeJson(allParametres)
-            PublishData(json_object)
+        allParametres = RearangeDataBack(ecgObject, Findings_ch1, data_filt)
+        json_object = EncodeJson(allParametres)
+        PublishData(json_object)
     except Exception as e:
         errorMsg = "An error occured in the processing algorithm." + "\n" + str(e)
         encoded = errorMsg.encode("utf-8")
-        client.publish(Topic_Series_Filtred, encoded, qos=1, retain=True)
+        client.publish(Topic_Processed_Measurement, encoded, qos=1, retain=True)
         print("An error occured in the processing algorithm. \n")
         print(e)
 
@@ -462,7 +389,7 @@ def ProcessingAlgorihtm(message):
 """Running code"""
 # region Set up and run the MQTT client
 # When the client connects to the broker
-client = mqtt.Client()
+client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1, protocol=mqtt.MQTTv311)
 client.on_connect = on_connect
 client.on_message = on_message
 client.on_disconnect = on_disconnect
@@ -470,10 +397,9 @@ client.on_subscribe = on_subscribe
 
 
 # Create the last will message
-client.will_set(Topic_Status_Python, payload="Offline", qos=0, retain=True)
-client.username_pw_set(username="s1", password="passwordfors1")
-broker_address = "localhost"
-broker_address = "assure.au-dev.dk"
+# client.will_set(Topic_Decoded_Measurement, payload=None, qos=0, retain=False)
+# client.username_pw_set(username="s1", password="passwordfors1")
+broker_address = "test.mosquitto.org"
 print("Connecting to MQTT broker... \n with host: " + broker_address)
 try:
     # client.username_pw_set(username="s1",password="passwordfors1")
@@ -485,7 +411,7 @@ except ConnectionRefusedError as e:
         + "\n"
         + e
     ).encode("utf-8")
-    client.publish(Topic_Series_Filtred, msg, qos=1, retain=True)
+    client.publish(Topic_Processed_Measurement, msg, qos=1, retain=True)
 
     print(
         "First attempt to connect fails because the docker container for the MQTT server needs to start."
@@ -497,7 +423,7 @@ except Exception as e:
         + "\n"
         + e
     ).encode("utf-8")
-    client.publish(Topic_Series_Filtred, msg, qos=1, retain=True)
+    client.publish(Topic_Processed_Measurement, msg, qos=1, retain=True)
     print("An error occured in the processing algorithm. \n")
     print(str(e))
 
