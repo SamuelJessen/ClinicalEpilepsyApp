@@ -18,7 +18,7 @@ else
     <RadzenRow class="rz-text-align-center rz-border-info-light" Gap="1rem">
         <RadzenColumn class="rz-background-color-info-lighter rz-color-on-info-lighter rz-p-5">
             <h4>Der vises: @windowSize samples på grafvinduet.</h4>
-            <RadzenSlider @bind-Value=@windowSize TValue="int" Min="25" Max="1000" Step="40" />
+            <RadzenSlider Name="WindowSizeSlider" TValue="int" Min="25" Max="1000" Step="40" @bind-Value="windowSize"/>
         </RadzenColumn>
         <RadzenColumn class="rz-background-color-info-lighter rz-color-on-info-lighter rz-p-2 rz-p-md-5">
             <h4>Grafen viser fra sample: @WindowStartIndex til sample @WindowEndPoint</h4>
@@ -122,8 +122,20 @@ else
 @code {
     [Parameter]
     public string MeasurementId { get; set; }
+    private int _windowSize = 25;
+    public int windowSize
+    {
+        get
+        {
+            return _windowSize;
+        }
+        set
+        {
+		    _windowSize = value;
+			HandleWindowSizeChange();
+		}
+    }
 
-    public int windowSize { get; set; } = 25;
     public int WindowStartIndex { get; set; } = 0;
 
     public int MaxWindowSize => measurement.ProcessedEcgChannel1.Count;
@@ -139,6 +151,10 @@ else
     private EcgMeasurement[] EcgChannel1 { get; set; }
     private EcgMeasurement[] EcgChannel2 { get; set; }
     private EcgMeasurement[] EcgChannel3 { get; set; }
+
+    //private EcgMeasurement[] ChartData1 => WindowStartIndex + windowSize < measurement.ProcessedEcgChannel1.Count ? EcgChannel1.Skip(WindowStartIndex).Take(windowSize).ToArray() : EcgChannel1.Skip(measurement.ProcessedEcgChannel1.Count-windowSize).Take(windowSize).ToArray();
+    //private EcgMeasurement[] ChartData2 => WindowStartIndex + windowSize < measurement.ProcessedEcgChannel2.Count ? EcgChannel2.Skip(WindowStartIndex).Take(windowSize).ToArray() : EcgChannel2.Skip(measurement.ProcessedEcgChannel2.Count-windowSize).Take(windowSize).ToArray();
+    //private EcgMeasurement[] ChartData3 => WindowStartIndex + windowSize < measurement.ProcessedEcgChannel3.Count ? EcgChannel3.Skip(WindowStartIndex).Take(windowSize).ToArray() : EcgChannel3.Skip(measurement.ProcessedEcgChannel3.Count - windowSize).Take(windowSize).ToArray();
 
     private EcgMeasurement[] ChartData1 => EcgChannel1.Skip(WindowStartIndex).Take(windowSize).ToArray();
     private EcgMeasurement[] ChartData2 => EcgChannel2.Skip(WindowStartIndex).Take(windowSize).ToArray();
@@ -198,5 +214,15 @@ else
         }
         dateTimes = timestamps;
         return timestamps;
+    }
+
+    void HandleWindowSizeChange()
+    {
+        // Hvis den nye vinduesstørrelse er større end antallet af datapunkter,
+        // skal vi justere startindekset, så vinduet forbliver inden for de tilgængelige data
+        if (WindowStartIndex + windowSize > measurement.ProcessedEcgChannel1.Count)
+        {
+            WindowStartIndex = measurement.ProcessedEcgChannel1.Count - windowSize;
+        }        
     }
 }
