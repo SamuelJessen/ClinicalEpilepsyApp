@@ -142,8 +142,10 @@ public class PatientsController : ControllerBase
             }
 
             // Update the thresholds
-            patient.CSIThreshold = thresholds.CSIThreshold;
-            patient.ModCSIThreshold = thresholds.ModCSIThreshold;
+            patient.CSIThreshold30 = thresholds.CSIThreshold30;
+            patient.CSIThreshold50 = thresholds.CSIThreshold50;
+            patient.CSIThreshold100 = thresholds.CSIThreshold100;
+            patient.ModCSIThreshold100 = thresholds.ModCSIThreshold100;
 
             await _patientRepository.UpdatePatientAsync(patient);
 
@@ -165,6 +167,9 @@ public class PatientLoginRequest
 
 public class ThresholdUpdateRequest
 {
-    public int CSIThreshold { get; set; }
-    public int ModCSIThreshold { get; set; }
+    public int CSIThreshold30 { get; set; }
+    public int CSIThreshold50 { get; set; }
+    public int CSIThreshold100 { get; set; }
+
+    public int ModCSIThreshold100 { get; set; }
 }

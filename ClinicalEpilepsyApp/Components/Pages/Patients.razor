@@ -18,8 +18,10 @@ else
         <tr>
             <th>Name</th>
             <th>Id</th>
-            <th>CSI</th>
-            <th>MOD-CSI</th>
+            <th>CSI30</th>
+            <th>CSI50</th>
+            <th>CSI100</th>
+            <th>MOD-CSI100</th>
         </tr>
         </thead>
         <tbody>
@@ -28,8 +30,10 @@ else
             <tr>
                 <td><a href="@($"patients/{patient.Id}")">@patient.Name</a></td>
                 <td>@patient.Id</td>
-                    <td>@patient.CSIThreshold</td>
-                    <td>@patient.ModCSIThreshold</td>
+                <td>@patient.CSIThreshold30</td>
+                <td>@patient.CSIThreshold50</td>
+                <td>@patient.CSIThreshold100</td>
+                <td>@patient.ModCSIThreshold100</td>
             </tr>
         }
         </tbody>
