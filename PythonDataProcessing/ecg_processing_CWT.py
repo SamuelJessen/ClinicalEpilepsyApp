@@ -92,9 +92,6 @@ def RearangeData(ecgdata):
 
     rawdata = np.array(rawdatalist)
 
-    timestamp_mock = np.zeros(len(rawdata))
-    rawdata = np.c_[timestamp_mock, rawdata]
-
     ch1 = rawdata
 
     rawdata = ecgdata["DecodedEcgChannel2"]
@@ -108,9 +105,6 @@ def RearangeData(ecgdata):
             rawdatalist.append(sample)
 
     rawdata = np.array(rawdatalist)
-
-    timestamp_mock = np.zeros(len(rawdata))
-    rawdata = np.c_[timestamp_mock, rawdata]
 
     ch2 = rawdata
 
@@ -126,9 +120,6 @@ def RearangeData(ecgdata):
 
     rawdata = np.array(rawdatalist)
 
-    timestamp_mock = np.zeros(len(rawdata))
-    rawdata = np.c_[timestamp_mock, rawdata]
-
     ch3 = rawdata
 
     return ch1, ch2, ch3
@@ -138,15 +129,16 @@ def CWT_filter(ch1, ch2, ch3):
 
     channels = [ch1, ch2, ch3]
     filtered_data_dict = dict()
+    filtered_data_list = list()
 
     # Define the wavelet
     wavelet = "bior3.1"
     for i, channel in enumerate(channels):
         # Perform the wavelet transform
-        coeffs = pywt.swt(channel[:, 1], wavelet, level=3)
+        coeffs = pywt.swt(channel, wavelet, level=3)
 
         # Apply wavelet thresholding to the coefficients
-        threshold = np.std(channel[:, 1])
+        threshold = np.std(channel)
         # RV: Kig ind i metoder til udregning af thres og mode for thresholding
 
         # Apply the filter to the coefficients
@@ -171,7 +163,7 @@ def CWT_filter(ch1, ch2, ch3):
         filtered_data = signal.filtfilt(b, a, filtered_data)
 
         # Add the filtered data to the dictionary with a key named after the iteration number
-        filtered_data_dict[f"ch{i+1}_filtered"] = filtered_data
+        filtered_data_dict[f"ch{i+1}_filtered"] = filtered_data.tolist()
 
     return filtered_data_dict
 
@@ -325,7 +317,7 @@ def RearangeDataBack(ecgObject, Findings_ch1, Filtered_data):
     allParametres = dict()
 
     allParametres["PatientID"] = ecgObject["PatientID"]
-    allParametres["TimeStamp"] = ecgObject["TimeStamp"][-1]
+    allParametres["TimeStamp"] = ecgObject["TimeStamp"]
     # Sender kun findings for ch1
     allParametres["CSI30"] = Findings_ch1["CSI30"]
     allParametres["CSI50"] = Findings_ch1["CSI50"]
@@ -366,9 +358,10 @@ def PublishData(json_object):
 def ProcessingAlgorihtm(message):
     try:
         # Save the JSON message locally
-        with open("message.json", "w") as file:
-            file.write(message)
-        ecgObject = DeserializeJson(message)
+        # with open("message.json", "w") as file:
+        #   file.write(message)
+        # ecgObject = DeserializeJson(message)
+        ecgObject = message
         ch1, ch2, ch3 = RearangeData(ecgObject)
         data_filt = CWT_filter(ch1, ch2, ch3)
         Findings_ch1 = CalcParametres(data_filt["ch1_filtered"])
@@ -379,9 +372,15 @@ def ProcessingAlgorihtm(message):
     except Exception as e:
         errorMsg = "An error occured in the processing algorithm." + "\n" + str(e)
         encoded = errorMsg.encode("utf-8")
-        client.publish(Topic_Processed_Measurement, encoded, qos=1, retain=True)
+        # client.publish(Topic_Processed_Measurement, encoded, qos=1, retain=True)
         print("An error occured in the processing algorithm. \n")
         print(e)
+
+
+def load_json_file(file_path):
+    with open(file_path, "r") as file:
+        data = json.load(file)
+    return data
 
 
 # endregion
@@ -389,9 +388,11 @@ def ProcessingAlgorihtm(message):
 """Running code"""
 # region Set up and run the MQTT client
 # When the client connects to the broker
+
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1, protocol=mqtt.MQTTv311)
 client.on_connect = on_connect
-client.on_message = on_message
+# client.on_message = on_message
+
 client.on_disconnect = on_disconnect
 client.on_subscribe = on_subscribe
 
@@ -423,10 +424,11 @@ except Exception as e:
         + "\n"
         + e
     ).encode("utf-8")
-    client.publish(Topic_Processed_Measurement, msg, qos=1, retain=True)
+    # client.publish(Topic_Processed_Measurement, msg, qos=1, retain=True)
     print("An error occured in the processing algorithm. \n")
     print(str(e))
-
+data = load_json_file("message.json")
+ProcessingAlgorihtm(data)
 # Will run the client forever, unless you interrupt it
 client.loop_forever()
 
