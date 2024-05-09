@@ -32,7 +32,6 @@ else
                     <td><a href="@($"/measurements/measurement/{measurement.ProcessedMeasurementId}")">@measurement.ProcessedMeasurementId</a></td>
                     <td>@measurement.PatientID</td>
                     <td>@measurement.StartTime</td>
-                    <td>@alarms.Where(x => x.EcgProcessedMeasurementId == measurement.ProcessedMeasurementId).ToList().Count</td>
                 </tr>
             }
         </tbody>

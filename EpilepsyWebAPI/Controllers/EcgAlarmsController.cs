@@ -21,17 +21,6 @@ public class EcgAlarmsController : ControllerBase
         return Ok(alarms);
     }
 
-    [HttpGet("alarms/forMeasurement/{id}")]
-    public async Task<ActionResult<IEnumerable<EcgAlarm>>> GetAlarmsForMeasurement(Guid id)
-    {
-        var alarms = await _repository.GetAlarmsForMeasurementByMeasurementIdAsync(id);
-        if (alarms == null)
-        {
-            return NotFound();
-        }
-        return Ok(alarms);
-    }
-
     [HttpPost("alarms")]
     public async Task<ActionResult<EcgAlarm>> PostEcgAlarm(EcgAlarm alarm)
     {
