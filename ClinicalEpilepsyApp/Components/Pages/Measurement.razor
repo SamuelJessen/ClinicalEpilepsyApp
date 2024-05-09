@@ -71,7 +71,9 @@ else
                         <RadzenMarkers Visible="@showMarkers" MarkerType="MarkerType.Circle" />
                         <RadzenSeriesDataLabels Visible="@showDataLabels" />
                     </RadzenLineSeries>
-                    <RadzenCategoryAxis Padding="20" step="10"/>
+                    @* <RadzenCategoryAxis Formatter="@ExtractData">
+                        <RadzenAxisTitle Text="Time" />
+                    </RadzenCategoryAxis> *@
                     @* <RadzenValueAxis Formatter="@FormatAsUSD">
                         <RadzenGridLines Visible="true" />
                         <RadzenAxisTitle Text="Revenue in USD" />
@@ -141,6 +143,7 @@ else
     public int MaxWindowSize => measurement.ProcessedEcgChannel1.Count;
     public int MaxStartIndex => measurement.ProcessedEcgChannel1.Count - windowSize;
     public int WindowEndPoint => WindowStartIndex + windowSize;
+    public int AxisStep => Math.Max(1, windowSize / 5);
 
     private EcgProcessedMeasurement measurement;
     private EcgAlarm[] alarms;
@@ -151,6 +154,22 @@ else
     private EcgMeasurement[] EcgChannel1 { get; set; }
     private EcgMeasurement[] EcgChannel2 { get; set; }
     private EcgMeasurement[] EcgChannel3 { get; set; }
+
+    List<String> ExtractData(List<String> data, int windowSize, int windowStartIndex)
+    {
+        int dataCount = data.Count;
+        int startIndex = Math.Max(0, Math.Min(windowStartIndex, dataCount - 1));
+        int endIndex = Math.Min(startIndex + windowSize, dataCount);
+
+        // Antal punkter, der skal udtrækkes, afhænger af vinduesstørrelsen
+        int numPointsToExtract = Math.Min(endIndex - startIndex, 20); // Max 20 punkter
+
+        // Udtræk punkter jævnt fordelt udover vinduet
+        var extractedPoints = Enumerable.Range(startIndex, numPointsToExtract)
+                                         .Select(i => data[i * (dataCount - 1) / (numPointsToExtract - 1)]);
+
+        return extractedPoints.ToList();
+    }
 
     //private EcgMeasurement[] ChartData1 => WindowStartIndex + windowSize < measurement.ProcessedEcgChannel1.Count ? EcgChannel1.Skip(WindowStartIndex).Take(windowSize).ToArray() : EcgChannel1.Skip(measurement.ProcessedEcgChannel1.Count-windowSize).Take(windowSize).ToArray();
     //private EcgMeasurement[] ChartData2 => WindowStartIndex + windowSize < measurement.ProcessedEcgChannel2.Count ? EcgChannel2.Skip(WindowStartIndex).Take(windowSize).ToArray() : EcgChannel2.Skip(measurement.ProcessedEcgChannel2.Count-windowSize).Take(windowSize).ToArray();
