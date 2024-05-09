@@ -1,20 +1,15 @@
-﻿using System.Linq;
-using System.Reflection.Metadata;
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
 using ClinicalEpilepsyApp.Domain.DBModels;
 using ClinicalEpilepsyApp.Domain.Models;
-using ClinicalEpilepsyApp.Infrastructure.Context;
-using ClinicalEpilepsyApp.Infrastructure.Repositories;
 using EpilepsyMQTTObserver;
-using Microsoft.EntityFrameworkCore.Storage.Json;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.VisualBasic;
 using uPLibrary.Networking.M2Mqtt;
 using uPLibrary.Networking.M2Mqtt.Messages;
 
 string brokerAddress = "test.mosquitto.org";
 string clientId = Guid.NewGuid().ToString();
+FakeMAUIPython fakeMAUIPython = new FakeMAUIPython();
+fakeMAUIPython.RunFakeMQTTClients();
 
 var rawMeasurementDecoder = new RawMeasurementDecoder();
 MqttClient mqttClient = new MqttClient(brokerAddress);
@@ -58,9 +53,9 @@ mqttClient.MqttMsgPublishReceived += async (sender, e) =>
         else
         {
             int samplesToAdd = 12 * 21 * 5; // 5 seconds of samples
-            int maxSamples = 12 * 21 * 240; // 240 = 4 minutes of samples
+            int maxSamples = 12 * 21 * 190; // 240 = 4 minutes of samples
 
-            int currentSamples = measurementToSave.ProcessedEcgChannel3.Length;
+            int currentSamples = intListChan1.Count;
 
             if (currentSamples < maxSamples)
             {
