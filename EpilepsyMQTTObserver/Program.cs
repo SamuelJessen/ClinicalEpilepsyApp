@@ -19,8 +19,6 @@ var intListChan1 = new List<int>();
 var intListChan2 = new List<int>();
 var intListChan3 = new List<int>();
 
-
-
 // Event handler for receiving messages
 mqttClient.MqttMsgPublishReceived += async (sender, e) =>
 {
@@ -53,7 +51,7 @@ mqttClient.MqttMsgPublishReceived += async (sender, e) =>
         else
         {
             int samplesToAdd = 12 * 21 * 5; // 5 seconds of samples
-            int maxSamples = 12 * 21 * 190; // 240 = 4 minutes of samples
+            int maxSamples = 12 * 21 * 240; // 240 = 4 minutes of samples
 
             int currentSamples = intListChan1.Count;
 
@@ -131,7 +129,7 @@ Task<string> DecodeMessage(string message)
     }
     var decodedBatchMeasurement = new DecodedEcgBatchMeasurement()
     {
-        Timestamp = measurement.Timestamp,
+        TimeStamp = measurement.Timestamp,
         PatientId = measurement.PatientId,
         DecodedEcgChannel1 = chan1,
         DecodedEcgChannel2 = chan2,
