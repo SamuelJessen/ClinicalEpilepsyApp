@@ -1,0 +1,59 @@
+﻿@page "/measurements"
+@using ClinicalEpilepsyApp.Domain.DBModels
+@rendermode InteractiveServer
+
+@inject HttpClient HttpClient
+@inject NavigationManager NavigationManager
+
+
+<PageTitle>Measurements</PageTitle>
+
+<h1>Measurements</h1>
+
+@if (measurements == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ProcessedMeasurementId</th>
+                <th>PatientId</th>
+                <th>StartTime</th>
+                <th>Alarms</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var measurement in measurements)
+            {
+                <tr>
+                    <td><a href="@($"/measurements/measurement/{measurement.ProcessedMeasurementId}")">@measurement.ProcessedMeasurementId</a></td>
+                    <td>@measurement.PatientId</td>
+                    <td>@measurement.StartTime</td>
+                    <td>@alarms.Where(x => x.EcgProcessedMeasurementId == measurement.ProcessedMeasurementId).ToList().Count</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+
+@code {
+    private List<EcgProcessedMeasurement> measurements;
+    private List<EcgAlarm> alarms;
+
+    protected override async Task OnInitializedAsync()
+    {
+        measurements = await HttpClient.GetFromJsonAsync<List<EcgProcessedMeasurement>>("https://localhost:7128/measurements") ?? new List<EcgProcessedMeasurement>();
+        alarms = await HttpClient.GetFromJsonAsync<List<EcgAlarm>>($"https://localhost:7128/alarms") ?? new List<EcgAlarm>();
+    }
+
+    private void NavigateToMeasurementGraph()
+    {
+        NavigationManager.NavigateTo("/measurements/measurement");
+    }
+}
+
+
