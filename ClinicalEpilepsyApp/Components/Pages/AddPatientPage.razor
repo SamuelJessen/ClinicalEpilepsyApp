@@ -36,7 +36,7 @@
 
     private async Task AddPatient()
     {
-        var response = await HttpClient.PostAsJsonAsync<Patient>("https://localhost:7128/patients", patient);
+        var response = await HttpClient.PostAsJsonAsync<Patient>(Constants.ApiString + "/patients", patient);
         if (response.IsSuccessStatusCode)
         {
             NavigationManager.NavigateTo("/patients");

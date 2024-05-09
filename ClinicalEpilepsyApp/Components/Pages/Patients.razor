@@ -19,6 +19,7 @@ else
             <th>Name</th>
             <th>Id</th>
             <th>CSI</th>
+            <th>MOD-CSI</th>
         </tr>
         </thead>
         <tbody>
@@ -41,7 +42,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        patients = await HttpClient.GetFromJsonAsync<List<Patient>>("https://localhost:7128/patients") ?? new List<Patient>();
+        patients = await HttpClient.GetFromJsonAsync<List<Patient>>(Constants.ApiString + "/patients") ?? new List<Patient>();
     }
 
     private void NavigateToAddPatient()

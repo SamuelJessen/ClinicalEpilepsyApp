@@ -30,7 +30,7 @@ else
             {
                 <tr>
                     <td><a href="@($"/measurements/measurement/{measurement.ProcessedMeasurementId}")">@measurement.ProcessedMeasurementId</a></td>
-                    <td>@measurement.PatientId</td>
+                    <td>@measurement.PatientID</td>
                     <td>@measurement.StartTime</td>
                     <td>@alarms.Where(x => x.EcgProcessedMeasurementId == measurement.ProcessedMeasurementId).ToList().Count</td>
                 </tr>
@@ -46,8 +46,8 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        measurements = await HttpClient.GetFromJsonAsync<List<EcgProcessedMeasurement>>("https://localhost:7128/measurements") ?? new List<EcgProcessedMeasurement>();
-        alarms = await HttpClient.GetFromJsonAsync<List<EcgAlarm>>($"https://localhost:7128/alarms") ?? new List<EcgAlarm>();
+        measurements = await HttpClient.GetFromJsonAsync<List<EcgProcessedMeasurement>>(Constants.ApiString + "/measurements") ?? new List<EcgProcessedMeasurement>();
+        alarms = await HttpClient.GetFromJsonAsync<List<EcgAlarm>>(Constants.ApiString + "/alarms") ?? new List<EcgAlarm>();
     }
 
     private void NavigateToMeasurementGraph()
