@@ -53,7 +53,7 @@ else
 
     private async Task DeletePatient()
     {
-        var response = await HttpClient.DeleteAsync($"https://localhost:7128/patients/{PatientId}");
+        var response = await HttpClient.DeleteAsync(Constants.ApiString + $"/patients/{PatientId}");
         if (response.IsSuccessStatusCode)
         {
             NavigationManager.NavigateTo("/patients");
@@ -66,6 +66,6 @@ else
 
     private async Task<Patient> GetPatientDetails(string patientId)
     {
-        return await HttpClient.GetFromJsonAsync<Patient>($"https://localhost:7128/patients/{patientId}");
+        return await HttpClient.GetFromJsonAsync<Patient>(Constants.ApiString + $"/patients/{patientId}");
     }
 }

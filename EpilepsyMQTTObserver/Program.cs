@@ -9,6 +9,7 @@ using ClinicalEpilepsyApp.Infrastructure.Repositories;
 using EpilepsyMQTTObserver;
 using Microsoft.EntityFrameworkCore.Storage.Json;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.VisualBasic;
 using uPLibrary.Networking.M2Mqtt;
 using uPLibrary.Networking.M2Mqtt.Messages;
 
@@ -153,7 +154,7 @@ async Task SaveToDatabase(EcgProcessedMeasurement measurement)
 {
     var json = JsonSerializer.Serialize(measurement);
 
-    var apiUrl = "https://localhost:7128/measurements";
+    var apiUrl = "https://epilepsyapi.azurewebsites.net" + "/measurements";
 
     using (var httpClient = new HttpClient())
     {

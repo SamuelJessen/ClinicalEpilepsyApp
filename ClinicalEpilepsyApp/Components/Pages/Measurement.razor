@@ -107,8 +107,6 @@ else
                     <td>@alarm.CSI30</td>
                     <td>@alarm.CSI50</td>
                     <td>@alarm.CSI100</td>
-                    <td>@alarm.ModCSI30</td>
-                    <td>@alarm.ModCSI50</td>
                     <td>@alarm.ModCSI100</td>
                     <td>@alarm.PatientCSIThreshold</td>
                     <td>@alarm.PatientModCSIThreshold</td>
@@ -140,10 +138,15 @@ else
 
     public int WindowStartIndex { get; set; } = 0;
 
-    public int MaxWindowSize => measurement.ProcessedEcgChannel1.Count;
-    public int MaxStartIndex => measurement.ProcessedEcgChannel1.Count - windowSize;
+    public int MaxWindowSize => chan1.Count;
+    public int MaxStartIndex => chan1.Count - windowSize;
     public int WindowEndPoint => WindowStartIndex + windowSize;
     public int AxisStep => Math.Max(1, windowSize / 5);
+
+    public List<int> chan1 = new List<int>();
+    public List<int> chan2 = new List<int>();
+    public List<int> chan3 = new List<int>();
+
 
     private EcgProcessedMeasurement measurement;
     private EcgAlarm[] alarms;
@@ -197,23 +200,32 @@ else
         measurement = await GetMeasurementDetails(MeasurementId);
         alarms = await GetAlarms(MeasurementId);
         StartTime = measurement.StartTime;
-
-        EcgChannel1 = new EcgMeasurement[measurement.ProcessedEcgChannel1.Count];
-        EcgChannel2 = new EcgMeasurement[measurement.ProcessedEcgChannel2.Count];
-        EcgChannel3 = new EcgMeasurement[measurement.ProcessedEcgChannel3.Count];
+        chan1 = ConvertByteArrayToIntArray(measurement.ProcessedEcgChannel1).ToList();
+        chan2 = ConvertByteArrayToIntArray(measurement.ProcessedEcgChannel2).ToList();
+        chan3 = ConvertByteArrayToIntArray(measurement.ProcessedEcgChannel3).ToList();
+        EcgChannel1 = new EcgMeasurement[chan1.Count];
+        EcgChannel2 = new EcgMeasurement[chan2.Count];
+        EcgChannel3 = new EcgMeasurement[chan3.Count];
 
         // Prepared for variations in sample rate
         GenerateTimeStamps(252);
     }
 
+    static int[] ConvertByteArrayToIntArray(byte[] byteArray)
+    {
+        int[] intArray = new int[byteArray.Length / sizeof(int)];
+        Buffer.BlockCopy(byteArray, 0, intArray, 0, byteArray.Length);
+        return intArray;
+    }
+
     private async Task<EcgProcessedMeasurement> GetMeasurementDetails(string measurementId)
     {
-        return await HttpClient.GetFromJsonAsync<EcgProcessedMeasurement>($"https://localhost:7128/measurements/{measurementId}");
+        return await HttpClient.GetFromJsonAsync<EcgProcessedMeasurement>(Constants.ApiString + $"/measurements/{measurementId}");
     }
 
     private async Task<EcgAlarm[]> GetAlarms(string measurementId)
     {
-        return await HttpClient.GetFromJsonAsync<EcgAlarm[]>($"https://localhost:7128/alarms/formeasurement/{measurementId}");
+        return await HttpClient.GetFromJsonAsync<EcgAlarm[]>(Constants.ApiString + $"/alarms/formeasurement/{measurementId}");
     }
 
     public List<String> GenerateTimeStamps(int sampleRate)
@@ -223,7 +235,7 @@ else
         double timeInterval = 1.0 / sampleRate;
 
         // Generate timestamps for each sample based on the start time and time interval
-        for (int i = 0; i < measurement.ProcessedEcgChannel1.Count; i++)
+        for (int i = 0; i < chan1.Count; i++)
         {
             double seconds = i * timeInterval;
             timestamps.Add(StartTime.AddSeconds(seconds).ToString("hh:mm:ss.fff"));
@@ -239,9 +251,9 @@ else
     {
         // Hvis den nye vinduesstørrelse er større end antallet af datapunkter,
         // skal vi justere startindekset, så vinduet forbliver inden for de tilgængelige data
-        if (WindowStartIndex + windowSize > measurement.ProcessedEcgChannel1.Count)
+        if (WindowStartIndex + windowSize > chan1.Count)
         {
-            WindowStartIndex = measurement.ProcessedEcgChannel1.Count - windowSize;
+            WindowStartIndex = chan1.Count - windowSize;
         }        
     }
 }
