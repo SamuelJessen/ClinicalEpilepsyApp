@@ -5,6 +5,8 @@
 @inject HttpClient HttpClient
 @inject NavigationManager NavigationManager
 
+<h2>Patient ID : @PatientID</h2>
+
 <h3>Measurement : @MeasurementId</h3>
 
 <h4>Start time for measurement : @StartTime</h4>
@@ -15,17 +17,6 @@
 }
 else
 {
-    @* <RadzenRow class="rz-text-align-center rz-border-info-light" Gap="1rem">
-        <RadzenColumn class="rz-background-color-info-lighter rz-color-on-info-lighter rz-p-5">
-            <h4>Der vises: @windowSize samples på grafvinduet.</h4>
-            <RadzenSlider Name="WindowSizeSlider" TValue="int" Min="25" Max="1000" Step="40" @bind-Value="windowSize"/>
-        </RadzenColumn>
-        <RadzenColumn class="rz-background-color-info-lighter rz-color-on-info-lighter rz-p-2 rz-p-md-5">
-            <h4>Grafen viser fra sample: @WindowStartIndex til sample @WindowEndPoint</h4>
-            <RadzenSlider @bind-Value=@WindowStartIndex TValue="int" Min="0" Max=MaxStartIndex Step="40" />
-        </RadzenColumn>
-    </RadzenRow> *@
-
     <div class="rz-p-100 rz-">
         
     </div>
@@ -41,7 +32,7 @@ else
 
     <div class="container">
         <div class="row">
-            <div class="col-sm-12 my-5" style="width: 500px; overflow: auto">
+            <div class="col-sm-12 my-5">
                 <RadzenCard class="w-100 mb-4" Style="display: flex; align-items: center; gap: 0.5rem">
                     <RadzenCheckBox @bind-Value="@smooth" Name="smooth"></RadzenCheckBox>
                     <RadzenLabel Text="Smooth" Component="smooth" Style="margin-right: 1rem;" />
@@ -56,52 +47,66 @@ else
                     <RadzenCheckBox @bind-Value="@showChannel3" Name="Channel3"></RadzenCheckBox>
                     <RadzenLabel Text="Show Channel 3" Component="channel3" />
                 </RadzenCard>
-                <RadzenChart style="width: auto">
-                    <RadzenLineSeries Smooth="@smooth" Data="@ChartData1" CategoryProperty="Time" Title="Channel 1" LineType="LineType.Dashed" ValueProperty="Voltage" Visible=showChannel1>
-                        <RadzenMarkers Visible="@showMarkers" MarkerType="MarkerType.Square" />
-                        <RadzenSeriesDataLabels Visible="@showDataLabels" />
-                    </RadzenLineSeries>
-                    <RadzenLineSeries Smooth="@smooth" Data="@ChartData2" CategoryProperty="Time" Title="Channel 2" ValueProperty="Voltage" Visible=showChannel2>
-                        <RadzenMarkers Visible="@showMarkers" MarkerType="MarkerType.Circle" />
-                        <RadzenSeriesDataLabels Visible="@showDataLabels" />
-                    </RadzenLineSeries>
-                    <RadzenLineSeries Smooth="@smooth" Data="@ChartData3" CategoryProperty="Time" Title="Channel 2" ValueProperty="Voltage" Visible=showChannel3>
-                        <RadzenMarkers Visible="@showMarkers" MarkerType="MarkerType.Circle" />
-                        <RadzenSeriesDataLabels Visible="@showDataLabels" />
-                    </RadzenLineSeries>
-                    @* <RadzenCategoryAxis Formatter="@ExtractData">
-                        <RadzenAxisTitle Text="Time" />
+                <div>
+                    <RadzenChart style="width: auto">
+                        <RadzenLineSeries Smooth="@smooth" Data="@ChartData1" CategoryProperty="Time" Title="Channel 1" LineType="LineType.Dashed" ValueProperty="Voltage" Visible=showChannel1>
+                            <RadzenMarkers Visible="@showMarkers" MarkerType="MarkerType.Square" />
+                            <RadzenSeriesDataLabels Visible="@showDataLabels" />
+                        </RadzenLineSeries>
+                        <RadzenLineSeries Smooth="@smooth" Data="@ChartData2" CategoryProperty="Time" Title="Channel 2" ValueProperty="Voltage" Visible=showChannel2>
+                            <RadzenMarkers Visible="@showMarkers" MarkerType="MarkerType.Circle" />
+                            <RadzenSeriesDataLabels Visible="@showDataLabels" />
+                        </RadzenLineSeries>
+                        <RadzenLineSeries Smooth="@smooth" Data="@ChartData3" CategoryProperty="Time" Title="Channel 2" ValueProperty="Voltage" Visible=showChannel3>
+                            <RadzenMarkers Visible="@showMarkers" MarkerType="MarkerType.Circle" />
+                            <RadzenSeriesDataLabels Visible="@showDataLabels" />
+                        </RadzenLineSeries>
+                        @* <RadzenCategoryAxis Formatter="@ExtractData">
+                    <RadzenAxisTitle Text="Time" />
                     </RadzenCategoryAxis> *@
-                    @* <RadzenValueAxis Formatter="@FormatAsUSD">
-                        <RadzenGridLines Visible="true" />
-                        <RadzenAxisTitle Text="Revenue in USD" />
+                        @* <RadzenValueAxis Formatter="@FormatAsUSD">
+                    <RadzenGridLines Visible="true" />
+                    <RadzenAxisTitle Text="Revenue in USD" />
                     </RadzenValueAxis> *@
-                </RadzenChart>
+                    </RadzenChart>
+                </div>
             </div>
         </div>
     </div>
+
+    <RadzenRow class="rz-text-align-center rz-border-info-light" Gap="1rem">
+        <RadzenColumn class="rz-background-color-info-lighter rz-color-on-info-lighter rz-p-2 rz-p-md-5">
+            <RadzenSlider @bind-Value=@WindowStartIndex TValue="int" Min="0" Max=MaxStartIndex Step="500"/>
+        </RadzenColumn>
+    </RadzenRow>
+
 
     <h2>Alarms</h2>
     <table class="table">
         <thead>
             <tr>
-                <th>Id</th>
                 <th>csI30</th>
                 <th>csI50</th>
                 <th>csI100</th>
-                <th>modCSI30</th>
-                <th>modCSI50</th>
                 <th>modCSI100</th>
-                <th>patientCSIThreshold</th>
-                <th>patientModCSIThreshold</th>
+                <th>PatientCSIThreshold30</th>
+                <th>PatientCSIThreshold50</th>
+                <th>PatientCSIThreshold100</th>
+                <th>PatientModCSIThreshold100</th>
+                <th>Alarm type</th>
                 <th>alarmTimestamp</th>
             </tr>
+
         </thead>
         <tbody>
             @foreach (var alarm in alarms)
             {
+                string alarmType =  alarm.CSI30Alarm ? "CSI30Alarm" :
+                                    alarm.CSI50Alarm ? "CSI50Alarm" :
+                                    alarm.CSI100Alarm ? "CSI100Alarm" :
+                                    alarm.ModCSI100Alarm ? "ModCSI100Alarm" :
+                                    "-";
                 <tr>
-                    <td>@alarm.Id</td>
                     <td>@alarm.CSI30</td>
                     <td>@alarm.CSI50</td>
                     <td>@alarm.CSI100</td>
@@ -110,6 +115,7 @@ else
                     <td>@alarm.PatientCSIThreshold50</td>
                     <td>@alarm.PatientCSIThreshold100</td>
                     <td>@alarm.PatientModCSIThreshold100</td>
+                    <td>@alarmType</td>
                     <td>@alarm.AlarmTimestamp</td>
                 </tr>
             }
@@ -122,7 +128,7 @@ else
 @code {
     [Parameter]
     public string MeasurementId { get; set; }
-    private int _windowSize = 25;
+    private int _windowSize = 1000;
     public int windowSize
     {
         get
@@ -131,13 +137,13 @@ else
         }
         set
         {
-		    _windowSize = value;
-			HandleWindowSizeChange();
-		}
+            _windowSize = value;
+            HandleWindowSizeChange();
+        }
     }
 
     public int WindowStartIndex { get; set; } = 0;
-
+   
     public int MaxWindowSize => chan1.Count;
     public int MaxStartIndex => chan1.Count - windowSize;
     public int WindowEndPoint => WindowStartIndex + windowSize;
@@ -154,6 +160,7 @@ else
 
     public List<String> dateTimes { get; set; }
     public DateTime StartTime { get; set; }
+    public string PatientID{ get; set; }
     private EcgMeasurement[] EcgChannel1 { get; set; }
     private EcgMeasurement[] EcgChannel2 { get; set; }
     private EcgMeasurement[] EcgChannel3 { get; set; }
@@ -199,6 +206,7 @@ else
     {
         measurement = await GetMeasurementDetails(MeasurementId);
         StartTime = measurement.StartTime;
+        PatientID = measurement.PatientID;
         chan1 = ConvertByteArrayToIntArray(measurement.ProcessedEcgChannel1).ToList();
         chan2 = ConvertByteArrayToIntArray(measurement.ProcessedEcgChannel2).ToList();
         chan3 = ConvertByteArrayToIntArray(measurement.ProcessedEcgChannel3).ToList();
@@ -209,7 +217,7 @@ else
         alarms = await GetAlarms();
 
         // Prepared for variations in sample rate
-        GenerateTimeStamps(252);
+        GenerateTimeStamps(250);
     }
 
     static int[] ConvertByteArrayToIntArray(byte[] byteArray)

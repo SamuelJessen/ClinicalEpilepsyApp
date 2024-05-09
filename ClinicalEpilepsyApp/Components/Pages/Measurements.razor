@@ -22,7 +22,6 @@ else
                 <th>ProcessedMeasurementId</th>
                 <th>PatientId</th>
                 <th>StartTime</th>
-                <th>Alarms</th>
             </tr>
         </thead>
         <tbody>
@@ -41,12 +40,10 @@ else
 
 @code {
     private List<EcgProcessedMeasurement> measurements;
-    private List<EcgAlarm> alarms;
 
     protected override async Task OnInitializedAsync()
     {
         measurements = await HttpClient.GetFromJsonAsync<List<EcgProcessedMeasurement>>(Constants.ApiString + "/measurements") ?? new List<EcgProcessedMeasurement>();
-        alarms = await HttpClient.GetFromJsonAsync<List<EcgAlarm>>(Constants.ApiString + "/alarms") ?? new List<EcgAlarm>();
     }
 
     private void NavigateToMeasurementGraph()
