@@ -89,11 +89,14 @@ else
                 <th>csI50</th>
                 <th>csI100</th>
                 <th>modCSI100</th>
-                <th>PatientCSIThreshold30</th>
-                <th>PatientCSIThreshold50</th>
-                <th>PatientCSIThreshold100</th>
-                <th>PatientModCSIThreshold100</th>
-                <th>Alarm type</th>
+                <th>Threshold CSI30</th>
+                <th>Threshold CSI50</th>
+                <th>Threshold CSI100</th>
+                <th>Threshold ModCSI100</th>
+                <th>CSI30 Alarm</th>
+                <th>CSI50 Alarm</th>
+                <th>CSI100 Alarm</th>
+                <th>ModCSI100 Alarm</th>
                 <th>alarmTimestamp</th>
             </tr>
 
@@ -101,11 +104,6 @@ else
         <tbody>
             @foreach (var alarm in alarms)
             {
-                string alarmType =  alarm.CSI30Alarm ? "CSI30Alarm" :
-                                    alarm.CSI50Alarm ? "CSI50Alarm" :
-                                    alarm.CSI100Alarm ? "CSI100Alarm" :
-                                    alarm.ModCSI100Alarm ? "ModCSI100Alarm" :
-                                    "-";
                 <tr>
                     <td>@alarm.CSI30</td>
                     <td>@alarm.CSI50</td>
@@ -115,7 +113,10 @@ else
                     <td>@alarm.PatientCSIThreshold50</td>
                     <td>@alarm.PatientCSIThreshold100</td>
                     <td>@alarm.PatientModCSIThreshold100</td>
-                    <td>@alarmType</td>
+                    <td>@alarm.CSI30Alarm</td>
+                    <td>@alarm.CSI50Alarm</td>
+                    <td>@alarm.CSI100Alarm</td>
+                    <td>@alarm.ModCSI100Alarm</td>
                     <td>@alarm.AlarmTimestamp</td>
                 </tr>
             }
