@@ -48,10 +48,10 @@ else
                     <RadzenLabel Text="Show Channel 3" Component="channel3" />
                 </RadzenCard>
                 <div>
-                    <RadzenChart style="width: auto">
+                    <RadzenChart>
                         <RadzenLineSeries Smooth="@smooth" Data="@ChartData1" CategoryProperty="Time" Title="Channel 1" LineType="LineType.Dashed" ValueProperty="Voltage" Visible=showChannel1>
                             <RadzenMarkers Visible="@showMarkers" MarkerType="MarkerType.Square" />
-                            <RadzenSeriesDataLabels Visible="@showDataLabels" />
+                            @* <RadzenSeriesDataLabels Visible="@showDataLabels" /> *@
                         </RadzenLineSeries>
                         <RadzenLineSeries Smooth="@smooth" Data="@ChartData2" CategoryProperty="Time" Title="Channel 2" ValueProperty="Voltage" Visible=showChannel2>
                             <RadzenMarkers Visible="@showMarkers" MarkerType="MarkerType.Circle" />
@@ -64,10 +64,10 @@ else
                         @* <RadzenCategoryAxis Formatter="@ExtractData">
                     <RadzenAxisTitle Text="Time" />
                     </RadzenCategoryAxis> *@
-                        @* <RadzenValueAxis Formatter="@FormatAsUSD">
+                    <RadzenValueAxis Min="-10000" Max="20000" Step="5000">
                     <RadzenGridLines Visible="true" />
-                    <RadzenAxisTitle Text="Revenue in USD" />
-                    </RadzenValueAxis> *@
+                    <RadzenAxisTitle Text="Voltage" />
+                    </RadzenValueAxis>
                     </RadzenChart>
                 </div>
             </div>
@@ -76,7 +76,7 @@ else
 
     <RadzenRow class="rz-text-align-center rz-border-info-light" Gap="1rem">
         <RadzenColumn class="rz-background-color-info-lighter rz-color-on-info-lighter rz-p-2 rz-p-md-5">
-            <RadzenSlider @bind-Value=@WindowStartIndex TValue="int" Min="0" Max=MaxStartIndex Step="500"/>
+            <RadzenSlider @bind-Value=@WindowStartIndex TValue="int" Min="0" Max=MaxStartIndex Step="500" Style="width=500px; --rz-slider-width: 50px; --rz-slider-handle-height: 50px"/>
         </RadzenColumn>
     </RadzenRow>
 
@@ -197,7 +197,7 @@ else
 
     bool smooth = false;
     bool showDataLabels = false;
-    bool showMarkers = true;
+    bool showMarkers = false;
     bool showChannel1 = true;
     bool showChannel2 = false;
     bool showChannel3 = false;
@@ -253,9 +253,9 @@ else
         {
             double seconds = i * timeInterval;
             timestamps.Add(StartTime.AddSeconds(seconds).ToString("hh:mm:ss.fff"));
-            EcgChannel1[i] = new EcgMeasurement { Time = timestamps[i], Voltage = measurement.ProcessedEcgChannel1[i] };
-            EcgChannel2[i] = new EcgMeasurement { Time = timestamps[i], Voltage = measurement.ProcessedEcgChannel2[i] };
-            EcgChannel3[i] = new EcgMeasurement { Time = timestamps[i], Voltage = measurement.ProcessedEcgChannel3[i] };
+            EcgChannel1[i] = new EcgMeasurement { Time = timestamps[i], Voltage = chan1[i] };
+            EcgChannel2[i] = new EcgMeasurement { Time = timestamps[i], Voltage = chan2[i] };
+            EcgChannel3[i] = new EcgMeasurement { Time = timestamps[i], Voltage = chan3[i] };
         }
         dateTimes = timestamps;
         return timestamps;
