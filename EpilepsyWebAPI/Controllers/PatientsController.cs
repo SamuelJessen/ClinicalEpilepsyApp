@@ -170,6 +170,5 @@ public class ThresholdUpdateRequest
     public int CSIThreshold30 { get; set; }
     public int CSIThreshold50 { get; set; }
     public int CSIThreshold100 { get; set; }
-
     public int ModCSIThreshold100 { get; set; }
 }
