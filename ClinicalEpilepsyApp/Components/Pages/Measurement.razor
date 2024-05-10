@@ -9,7 +9,7 @@
 
 <h3>Measurement : @MeasurementId</h3>
 
-<h4>Start time for measurement : @StartTime</h4>
+<h4>Start time for measurement : @StartTime.ToString("dd-MM-yyyy HH:mm:ss:fff")</h4>
 
 @if (measurement == null)
 {
@@ -51,19 +51,19 @@ else
                     <RadzenChart>
                         <RadzenLineSeries Smooth="@smooth" Data="@ChartData1" CategoryProperty="Time" Title="Channel 1" LineType="LineType.Dashed" ValueProperty="Voltage" Visible=showChannel1>
                             <RadzenMarkers Visible="@showMarkers" MarkerType="MarkerType.Square" />
-                            @* <RadzenSeriesDataLabels Visible="@showDataLabels" /> *@
+                            <RadzenSeriesDataLabels Visible="@showDataLabels"/>
                         </RadzenLineSeries>
                         <RadzenLineSeries Smooth="@smooth" Data="@ChartData2" CategoryProperty="Time" Title="Channel 2" ValueProperty="Voltage" Visible=showChannel2>
                             <RadzenMarkers Visible="@showMarkers" MarkerType="MarkerType.Circle" />
                             <RadzenSeriesDataLabels Visible="@showDataLabels" />
                         </RadzenLineSeries>
-                        <RadzenLineSeries Smooth="@smooth" Data="@ChartData3" CategoryProperty="Time" Title="Channel 2" ValueProperty="Voltage" Visible=showChannel3>
+                        <RadzenLineSeries Smooth="@smooth" Data="@ChartData3" CategoryProperty="Time" Title="Channel 3" ValueProperty="Voltage" Visible=showChannel3>
                             <RadzenMarkers Visible="@showMarkers" MarkerType="MarkerType.Circle" />
-                            <RadzenSeriesDataLabels Visible="@showDataLabels" />
+                            <RadzenSeriesDataLabels Visible="@showDataLabels"/>
                         </RadzenLineSeries>
-                        @* <RadzenCategoryAxis Formatter="@ExtractData">
-                    <RadzenAxisTitle Text="Time" />
-                    </RadzenCategoryAxis> *@
+                    <RadzenCategoryAxis>
+                        <RadzenAxisTitle Text="Time" />
+                    </RadzenCategoryAxis>
                     <RadzenValueAxis Min="-10000" Max="20000" Step="5000">
                     <RadzenGridLines Visible="true" />
                     <RadzenAxisTitle Text="Voltage" />
@@ -76,7 +76,7 @@ else
 
     <RadzenRow class="rz-text-align-center rz-border-info-light" Gap="1rem">
         <RadzenColumn class="rz-background-color-info-lighter rz-color-on-info-lighter rz-p-2 rz-p-md-5">
-            <RadzenSlider @bind-Value=@WindowStartIndex TValue="int" Min="0" Max=MaxStartIndex Step="500" Style="width=500px; --rz-slider-width: 50px; --rz-slider-handle-height: 50px"/>
+            <RadzenSlider @bind-Value=@WindowStartIndex TValue="int" Min="0" Max=MaxStartIndex Step="500" Style="scrollbar-width:500px; --rz-slider-handle-height: 50px" />
         </RadzenColumn>
     </RadzenRow>
 
