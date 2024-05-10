@@ -8,8 +8,8 @@ using uPLibrary.Networking.M2Mqtt.Messages;
 
 string brokerAddress = "test.mosquitto.org";
 string clientId = Guid.NewGuid().ToString();
-FakeMAUIPython fakeMAUIPython = new FakeMAUIPython();
-fakeMAUIPython.RunFakeMQTTClients();
+//FakeMAUIPython fakeMAUIPython = new FakeMAUIPython();
+//fakeMAUIPython.RunFakeMQTTClients();
 
 var rawMeasurementDecoder = new RawMeasurementDecoder();
 MqttClient mqttClient = new MqttClient(brokerAddress);
@@ -41,30 +41,24 @@ mqttClient.MqttMsgPublishReceived += async (sender, e) =>
             measurementToSave.PatientID = measurement.PatientID;
             measurementToSave.StartTime = measurement.TimeStamp;
             measurementToSave.ProcessedMeasurementId = Guid.NewGuid();
-            for (int i = 0; i < measurement.ProcessedEcgChannel1.Length-1; i++)
-            {
-                intListChan1.Add(measurement.ProcessedEcgChannel1[i]);
-                intListChan2.Add(measurement.ProcessedEcgChannel2[i]);
-                intListChan3.Add(measurement.ProcessedEcgChannel3[i]);
-            }   
+            intListChan1.AddRange(measurement.ProcessedEcgChannel1.Select(Convert.ToInt32));
+            intListChan2.AddRange(measurement.ProcessedEcgChannel2.Select(Convert.ToInt32));
+            intListChan3.AddRange(measurement.ProcessedEcgChannel3.Select(Convert.ToInt32));
         }
         else
         {
             int samplesToAdd = 12 * 21 * 5; // 5 seconds of samples
-            int maxSamples = 12 * 21 * 240; // 240 = 4 minutes of samples
+            int maxSamples = 12 * 21 * 60 * 5; // = 5 minutes of samples
 
             int currentSamples = intListChan1.Count;
 
             if (currentSamples < maxSamples)
             {
                 int remainingSamples = maxSamples - currentSamples;
-                int startIndex = Math.Max(measurement.ProcessedEcgChannel3.Length - remainingSamples, 0);
-                for (int i = startIndex; i < measurement.ProcessedEcgChannel3.Length; i++)
-                {
-                    intListChan1.Add(measurement.ProcessedEcgChannel1[i]);
-                    intListChan2.Add(measurement.ProcessedEcgChannel2[i]);
-                    intListChan3.Add(measurement.ProcessedEcgChannel3[i]);
-                }
+                int startIndex = Math.Max(measurement.ProcessedEcgChannel3.Count, 0);
+                intListChan1.AddRange(measurement.ProcessedEcgChannel1.Select(Convert.ToInt32));
+                intListChan2.AddRange(measurement.ProcessedEcgChannel2.Select(Convert.ToInt32));
+                intListChan3.AddRange(measurement.ProcessedEcgChannel3.Select(Convert.ToInt32));
             }
             else
             {
