@@ -29,7 +29,7 @@ mqttClient.MqttMsgPublishReceived += async (sender, e) =>
         var decodedMessage = await DecodeMessage(message);
 
         mqttClient.Publish(Topics.DecodedTopic, Encoding.UTF8.GetBytes(decodedMessage), MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE, false);
-        Console.WriteLine($"Published message on topic '{Topics.DecodedTopic}': {decodedMessage}");
+        Console.WriteLine($"Published message on topic '{Topics.DecodedTopic}'");
     }
 
     if (e.Topic == Topics.ProcessedTopic)
@@ -54,11 +54,13 @@ mqttClient.MqttMsgPublishReceived += async (sender, e) =>
 
             if (currentSamples < maxSamples)
             {
-                int remainingSamples = maxSamples - currentSamples;
-                int startIndex = Math.Max(measurement.ProcessedEcgChannel3.Count, 0);
-                intListChan1.AddRange(measurement.ProcessedEcgChannel1.Select(Convert.ToInt32));
-                intListChan2.AddRange(measurement.ProcessedEcgChannel2.Select(Convert.ToInt32));
-                intListChan3.AddRange(measurement.ProcessedEcgChannel3.Select(Convert.ToInt32));
+                int startIndex = measurement.ProcessedEcgChannel3.Count - samplesToAdd;
+                for (int i = startIndex; i < measurement.ProcessedEcgChannel1.Count; i++)
+                {
+                    intListChan1.Add(Convert.ToInt32(measurement.ProcessedEcgChannel1[i]));
+                    intListChan2.Add(Convert.ToInt32(measurement.ProcessedEcgChannel2[i]));
+                    intListChan3.Add(Convert.ToInt32(measurement.ProcessedEcgChannel3[i]));
+                }
             }
             else
             {
@@ -72,9 +74,11 @@ mqttClient.MqttMsgPublishReceived += async (sender, e) =>
                 intListChan1 = new List<int>();
                 intListChan2 = new List<int>();
                 intListChan3 = new List<int>();
+                Console.WriteLine("Saved measurement in database");
 
             }
         }
+        Console.WriteLine($"Processed message on topic '{e.Topic}'");
     }
 };
 
@@ -85,6 +89,8 @@ mqttClient.ConnectionClosed += (sender, e) =>
     Console.WriteLine("Attempting to reconnect...");
     mqttClient.Connect(clientId);
     mqttClient.Subscribe(new string[] { Topics.RawTopic, Topics.ProcessedTopic }, new byte[] { MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE, MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE });
+    Console.WriteLine($"Subscribed to topic '{Topics.RawTopic}'");
+    Console.WriteLine($"Subscribed to topic '{Topics.ProcessedTopic}'");
 };
 
 try
@@ -92,7 +98,8 @@ try
     mqttClient.Connect(clientId);
     Console.WriteLine("Connected to MQTT broker!");
     mqttClient.Subscribe(new string[] { Topics.RawTopic, Topics.ProcessedTopic }, new byte[] { MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE, MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE });
-    Console.WriteLine($"Subscribed to topics '{Topics.RawTopic + Topics.ProcessedTopic}'");
+    Console.WriteLine($"Subscribed to topic '{Topics.RawTopic}'");
+    Console.WriteLine($"Subscribed to topic '{Topics.ProcessedTopic}'");
 }
 catch (Exception ex)
 {
@@ -123,8 +130,8 @@ Task<string> DecodeMessage(string message)
     }
     var decodedBatchMeasurement = new DecodedEcgBatchMeasurement()
     {
-        TimeStamp = measurement.Timestamp,
-        PatientId = measurement.PatientId,
+        TimeStamp = measurement.TimeStamp,
+        PatientID = measurement.PatientID,
         DecodedEcgChannel1 = chan1,
         DecodedEcgChannel2 = chan2,
         DecodedEcgChannel3 = chan3
