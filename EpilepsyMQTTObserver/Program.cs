@@ -41,9 +41,9 @@ mqttClient.MqttMsgPublishReceived += async (sender, e) =>
             measurementToSave.PatientID = measurement.PatientID;
             measurementToSave.StartTime = measurement.TimeStamp;
             measurementToSave.ProcessedMeasurementId = Guid.NewGuid();
-            intListChan1.AddRange(measurement.ProcessedEcgChannel1.Select(Convert.ToInt32));
-            intListChan2.AddRange(measurement.ProcessedEcgChannel2.Select(Convert.ToInt32));
-            intListChan3.AddRange(measurement.ProcessedEcgChannel3.Select(Convert.ToInt32));
+            intListChan1.AddRange(measurement.ProcessedEcgChannel1);
+            intListChan2.AddRange(measurement.ProcessedEcgChannel2);
+            intListChan3.AddRange(measurement.ProcessedEcgChannel3);
         }
         else
         {
@@ -57,9 +57,9 @@ mqttClient.MqttMsgPublishReceived += async (sender, e) =>
                 int startIndex = measurement.ProcessedEcgChannel3.Count - samplesToAdd;
                 for (int i = startIndex; i < measurement.ProcessedEcgChannel1.Count; i++)
                 {
-                    intListChan1.Add(Convert.ToInt32(measurement.ProcessedEcgChannel1[i]));
-                    intListChan2.Add(Convert.ToInt32(measurement.ProcessedEcgChannel2[i]));
-                    intListChan3.Add(Convert.ToInt32(measurement.ProcessedEcgChannel3[i]));
+                    intListChan1.Add(measurement.ProcessedEcgChannel1[i]);
+                    intListChan2.Add(measurement.ProcessedEcgChannel2[i]);
+                    intListChan3.Add(measurement.ProcessedEcgChannel3[i]);
                 }
             }
             else
