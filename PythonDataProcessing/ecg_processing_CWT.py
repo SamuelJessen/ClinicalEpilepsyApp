@@ -23,14 +23,14 @@ Topic_Processed_Measurement = "ecg_data_group1/processed_measurements"
 # and publish the last will message on disconnect
 def on_connect(client, userdata, flags, rc):
     client.subscribe(Topic_Decoded_Measurement)
-    client.subscribe(Topic_Processed_Measurement)
+    # client.subscribe(Topic_Processed_Measurement)
 
     print("Connected with result code " + str(rc))
 
 
 # When a message is received, this function is called
 def on_message(client, userdata, msg):
-
+    print("=========  START on_message ============================")
     # Decode the message payload and check the topic
     messageEncoded = msg.payload
     message = messageEncoded.decode("utf-8")
@@ -40,7 +40,7 @@ def on_message(client, userdata, msg):
     else:
         print("Unknown topic: " + msg.topic + "\n\t" + str(message))
 
-    # print("=========  END on_message ============================")
+    print("=========  END on_message ============================")
 
 
 # When the client disconnects from the broker
@@ -65,12 +65,7 @@ def on_subscribe(client, userdata, mid, granted_qos):
 
 # Deserialize the json string
 def DeserializeJson(ms):
-    # Ready for the real data type, but it requires some changes to match the new dataformat
     ecgObject = json.loads(ms)
-
-    # Read in a ECG from af csv file
-    # ecgObject = np.genfromtxt(ms, delimiter=",")
-    # ecgObject = ecgObject[1:500, 1]
 
     return ecgObject
 
@@ -129,17 +124,15 @@ def CWT_filter(ch1, ch2, ch3):
 
     channels = [ch1, ch2, ch3]
     filtered_data_dict = dict()
-    filtered_data_list = list()
 
     # Define the wavelet
     wavelet = "bior3.1"
     for i, channel in enumerate(channels):
         # Perform the wavelet transform
-        coeffs = pywt.swt(channel, wavelet, level=3)
+        coeffs = pywt.swt(channel, wavelet, level=1)
 
         # Apply wavelet thresholding to the coefficients
         threshold = np.std(channel)
-        # RV: Kig ind i metoder til udregning af thres og mode for thresholding
 
         # Apply the filter to the coefficients
         filtered_coeffs = []
@@ -151,7 +144,7 @@ def CWT_filter(ch1, ch2, ch3):
         # Reconstruct the filtered signal
         filtered_data = pywt.iswt(filtered_coeffs, wavelet)
 
-        # Define the bandpass filter parameters
+        # To reduce drift in signal, a bandpass filter is applied
         order = 4
         low_freq = 0.5
         high_freq = 40
@@ -163,7 +156,7 @@ def CWT_filter(ch1, ch2, ch3):
         filtered_data = signal.filtfilt(b, a, filtered_data)
 
         # Add the filtered data to the dictionary with a key named after the iteration number
-        filtered_data_dict[f"ch{i+1}_filtered"] = filtered_data.tolist()
+        filtered_data_dict[f"ch{i+1}_filtered"] = list(map(int, filtered_data.tolist()))
 
     return filtered_data_dict
 
@@ -182,9 +175,6 @@ def TimeDiffer(ecgObject):
     return tdif
 
 
-##
-# RV noter: Thresholding på CSI skal fjernes. Dict "param" skal indeholde udregnet csi og modcsi værdier samt filteret data, men ikke findings for hver kanal
-##
 # Calculate the parametres from the ecg data
 def CalcParametres(data):
 
@@ -261,10 +251,6 @@ def CalcParametres(data):
         param["CSI50"] = None
         param["CSI100"] = None
         param["ModCSI100"] = None
-
-    # Add the RR intervals and the filtered ecg to the dictionary
-    # param['rr_intervals_ms'] = rr_interval
-    # param['filtered_ecg'] = qrs_detector.filtered_ecg_measurements.tolist()
 
     return param
 
@@ -344,7 +330,8 @@ def EncodeJson(dict):
 
 def PublishData(json_object):
     try:
-        client.publish(Topic_Processed_Measurement, json_object)
+        client.publish(Topic_Processed_Measurement, json_object, qos=1)
+        print("Publishing data")
     except:  # If the data is not in the correct format
         client.publish(
             Topic_Processed_Measurement, "Error".encode("utf-8"), qos=1, retain=True
@@ -357,11 +344,8 @@ def PublishData(json_object):
 # region Call the functions
 def ProcessingAlgorihtm(message):
     try:
-        # Save the JSON message locally
-        # with open("message.json", "w") as file:
-        #   file.write(message)
-        # ecgObject = DeserializeJson(message)
-        ecgObject = message
+        ecgObject = DeserializeJson(message)
+        # ecgObject = message
         ch1, ch2, ch3 = RearangeData(ecgObject)
         data_filt = CWT_filter(ch1, ch2, ch3)
         Findings_ch1 = CalcParametres(data_filt["ch1_filtered"])
@@ -391,8 +375,7 @@ def load_json_file(file_path):
 
 client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1, protocol=mqtt.MQTTv311)
 client.on_connect = on_connect
-# client.on_message = on_message
-
+client.on_message = on_message
 client.on_disconnect = on_disconnect
 client.on_subscribe = on_subscribe
 
@@ -427,8 +410,13 @@ except Exception as e:
     # client.publish(Topic_Processed_Measurement, msg, qos=1, retain=True)
     print("An error occured in the processing algorithm. \n")
     print(str(e))
-data = load_json_file("message.json")
-ProcessingAlgorihtm(data)
+
+############################################
+# For testing publish the data from a json.file
+# data = load_json_file("message.json")
+# ProcessingAlgorihtm(data)
+############################################
+
 # Will run the client forever, unless you interrupt it
 client.loop_forever()
 
