@@ -107,7 +107,7 @@ class QRSDetector(object):
         Method responsible for extracting peaks from loaded ECG measurements data through measurements processing.
         """
         # Extract measurements from loaded ECG data.
-        ecg_measurements = self.ecg_data_raw[:, 1]
+        ecg_measurements = self.ecg_data_raw
 
         # Measurements filtering - 0-15 Hz band pass filter.
         self.filtered_ecg_measurements = self.bandpass_filter(
@@ -195,11 +195,9 @@ class QRSDetector(object):
 
         # Create array containing both input ECG measurements data and QRS detection indication column.
         # We mark QRS detection with '1' flag in 'qrs_detected' log column ('0' otherwise).
-        measurement_qrs_detection_flag = np.zeros([len(self.ecg_data_raw[:, 1]), 1])
+        measurement_qrs_detection_flag = np.zeros([len(self.ecg_data_raw), 1])
         measurement_qrs_detection_flag[self.qrs_peaks_indices] = 1
-        self.ecg_data_detected = np.append(
-            self.ecg_data_raw, measurement_qrs_detection_flag, 1
-        )
+        # self.ecg_data_detected = np.append(self.ecg_data_raw, measurement_qrs_detection_flag, 1)
 
     """Results reporting methods."""
 

@@ -3,38 +3,62 @@ using System.Text.Json;
 using ClinicalEpilepsyApp.Domain.DBModels;
 using ClinicalEpilepsyApp.Domain.Models;
 using EpilepsyMQTTObserver;
-using uPLibrary.Networking.M2Mqtt;
-using uPLibrary.Networking.M2Mqtt.Messages;
-
-string brokerAddress = "test.mosquitto.org";
-string clientId = Guid.NewGuid().ToString();
-//FakeMAUIPython fakeMAUIPython = new FakeMAUIPython();
-//fakeMAUIPython.RunFakeMQTTClients();
+using HiveMQtt.Client;
+using HiveMQtt.Client.Options;
+using HiveMQtt.MQTT5.Types;
 
 var rawMeasurementDecoder = new RawMeasurementDecoder();
-MqttClient mqttClient = new MqttClient(brokerAddress);
+string brokerAddress = "telemonmqtt-wxmbnq.a01.euc1.aws.hivemq.cloud";
+string username = "TelemonBroker1";
+string password = "RememberTheStack123";
+string clientId = "12";
 
 var measurementToSave = new EcgProcessedMeasurement();
 var intListChan1 = new List<int>();
 var intListChan2 = new List<int>();
 var intListChan3 = new List<int>();
 
-// Event handler for receiving messages
-mqttClient.MqttMsgPublishReceived += async (sender, e) =>
+var options = new HiveMQClientOptions
 {
-    string message = Encoding.UTF8.GetString(e.Message);
-    if (e.Topic == Topics.RawTopic)
-    {
-        Console.WriteLine($"Received message on topic '{e.Topic}': {message}");
-        var decodedMessage = await DecodeMessage(message);
+    UseTLS = true,
+    Host = brokerAddress,
+    Port = 8883,
+    UserName = username,
+    Password = password,
+    ClientId = clientId,
+    SessionExpiryInterval = 150,
+    CleanStart = true
 
-        mqttClient.Publish(Topics.DecodedTopic, Encoding.UTF8.GetBytes(decodedMessage), MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE, false);
+};
+
+var client = new HiveMQClient(options);
+
+// Message Handler
+//
+// It's important that this is setup before we connect to the broker
+// otherwise queued messages that are sent down may be lost.
+//
+client.OnMessageReceived += async (sender, args) =>
+{
+    var message = args.PublishMessage.PayloadAsString;
+    if (args.PublishMessage.Topic == Topics.RawTopic)
+    {
+        Console.WriteLine($"Received message on topic '{args.PublishMessage.Topic}': {message}");
+        var decodedMessage = DecodeMessage(message);
+        var messageToPublish = new MQTT5PublishMessage
+        {
+            Topic = Topics.DecodedTopic,
+            Payload = System.Text.Encoding.UTF8.GetBytes(decodedMessage.Result),
+            QoS = QualityOfService.AtLeastOnceDelivery,
+        };
+        var resultPublish = await client.PublishAsync(messageToPublish).ConfigureAwait(false);
+        Console.WriteLine($"Published to topic {Topics.DecodedTopic}: {resultPublish.QoS2ReasonCode}");
         Console.WriteLine($"Published message on topic '{Topics.DecodedTopic}'");
     }
 
-    if (e.Topic == Topics.ProcessedTopic)
+    if (args.PublishMessage.Topic == Topics.ProcessedTopic)
     {
-        Console.WriteLine($"Received message on topic '{e.Topic}': {message}");
+        Console.WriteLine($"Received message on topic '{args.PublishMessage.Topic}': {message}");
         PythonEcgProcessedMeasurement measurement = JsonSerializer.Deserialize<PythonEcgProcessedMeasurement>(message)!;
         if (String.IsNullOrEmpty(measurementToSave.PatientID))
         {
@@ -49,8 +73,10 @@ mqttClient.MqttMsgPublishReceived += async (sender, e) =>
         {
             int samplesToAdd = 12 * 21 * 5; // 5 seconds of samples
             int maxSamples = 12 * 21 * 60 * 5; // = 5 minutes of samples
-
             int currentSamples = intListChan1.Count;
+            double percentDone = ((double)currentSamples/ maxSamples)*100;
+
+            Console.WriteLine($"Percent done: {percentDone}");
 
             if (currentSamples < maxSamples)
             {
@@ -78,42 +104,35 @@ mqttClient.MqttMsgPublishReceived += async (sender, e) =>
 
             }
         }
-        Console.WriteLine($"Processed message on topic '{e.Topic}'");
+        Console.WriteLine($"Processed message on topic '{args.PublishMessage.Topic}'");
     }
+
 };
 
-// Event handler for connection established
-mqttClient.ConnectionClosed += (sender, e) =>
+// Connect to the broker
+var connectResult = await client.ConnectAsync().ConfigureAwait(false);
+if (connectResult.ReasonCode != HiveMQtt.MQTT5.ReasonCodes.ConnAckReasonCode.Success)
 {
-    Console.WriteLine("Disconnected from MQTT broker!");
-    Console.WriteLine("Attempting to reconnect...");
-    mqttClient.Connect(clientId);
-    mqttClient.Subscribe(new string[] { Topics.RawTopic, Topics.ProcessedTopic }, new byte[] { MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE, MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE });
-    Console.WriteLine($"Subscribed to topic '{Topics.RawTopic}'");
-    Console.WriteLine($"Subscribed to topic '{Topics.ProcessedTopic}'");
-};
-
-try
-{
-    mqttClient.Connect(clientId);
-    Console.WriteLine("Connected to MQTT broker!");
-    mqttClient.Subscribe(new string[] { Topics.RawTopic, Topics.ProcessedTopic }, new byte[] { MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE, MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE });
-    Console.WriteLine($"Subscribed to topic '{Topics.RawTopic}'");
-    Console.WriteLine($"Subscribed to topic '{Topics.ProcessedTopic}'");
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"Failed to connect to MQTT broker: {ex.Message}");
-    return;
+    throw new Exception($"Failed to connect: {connectResult.ReasonString}");
 }
 
-Console.WriteLine("Press any key to exit.");
+// Subscribe to a topic
+var topic = Topics.RawTopic;
+var subscribeResult = await client.SubscribeAsync(topic, QualityOfService.AtLeastOnceDelivery).ConfigureAwait(false);
+var subscribeResult1 = await client.SubscribeAsync(Topics.ProcessedTopic, QualityOfService.AtLeastOnceDelivery).ConfigureAwait(false);
+Console.WriteLine($"Subscribed to {topic}: {subscribeResult.Subscriptions[0].SubscribeReasonCode}");
+Console.WriteLine($"Subscribed to {Topics.ProcessedTopic}: {subscribeResult1.Subscriptions[0].SubscribeReasonCode}");
+
+Console.WriteLine("Waiting for 5 seconds to receive messages queued on the topic...");
+await Task.Delay(5000).ConfigureAwait(false);
+
 Console.ReadKey();
 
-mqttClient.Disconnect();
+await client.DisconnectAsync().ConfigureAwait(false);
 
 Task<string> DecodeMessage(string message)
 {
+    // save message to text file
     EcgRawMeasurement measurement = JsonSerializer.Deserialize<EcgRawMeasurement>(message)!;
     var chan1 = new List<int[]>();
     var chan2 = new List<int[]>();
@@ -144,6 +163,13 @@ Task<string> DecodeMessage(string message)
     return Task.FromResult(decodedMessage);
 }
 
+static byte[] ConvertIntArrayToByteArray(int[] array)
+{
+    byte[] byteArray = new byte[array.Length * sizeof(int)];
+    Buffer.BlockCopy(array, 0, byteArray, 0, byteArray.Length);
+    return byteArray;
+}
+
 async Task SaveToDatabase(EcgProcessedMeasurement measurement)
 {
     var json = JsonSerializer.Serialize(measurement);
@@ -154,10 +180,7 @@ async Task SaveToDatabase(EcgProcessedMeasurement measurement)
     {
         try
         {
-            // Post the JSON data to the API endpoint
             var response = await httpClient.PostAsync(apiUrl, new StringContent(json, Encoding.UTF8, "application/json"));
-
-            // Check if the response is successful
             Console.WriteLine(response.IsSuccessStatusCode
                 ? "Data saved successfully."
                 : $"Failed to save data. Status code: {response.StatusCode}");
@@ -165,15 +188,6 @@ async Task SaveToDatabase(EcgProcessedMeasurement measurement)
         catch (Exception ex)
         {
             Console.WriteLine($"Error while calling the API: {ex.Message}");
-            // Handle the exception as needed
         }
     }
 }
-static byte[] ConvertIntArrayToByteArray(int[] array)
-{
-    byte[] byteArray = new byte[array.Length * sizeof(int)];
-    Buffer.BlockCopy(array, 0, byteArray, 0, byteArray.Length);
-    return byteArray;
-}
-
-
