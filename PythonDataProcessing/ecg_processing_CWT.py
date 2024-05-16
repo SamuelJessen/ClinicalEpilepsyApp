@@ -1,4 +1,3 @@
-# region Import libraries
 import paho.mqtt.client as paho  # pip install paho-mqtt
 from paho import mqtt
 from QRSDetector import QRSDetector  # pip install QRSDetector
@@ -8,27 +7,19 @@ import numpy as np  # pip install numpy
 import json  # pip install json
 import datetime  # pip install datetime
 import pywt  # pip install pywt
-
 import os
 
-
 # region Step 0: Setup the MQTT client
-
-# region Topics
 Topic_Decoded_Measurement = "ecg_data_group1/decoded_measurements"
 Topic_Processed_Measurement = "ecg_data_group1/processed_measurements"
-# endregion
 
 
-# will subscribe to the following topics on the broker
-# and publish the last will message on disconnect
 def on_connect(client, userdata, flags, rc, properties=None):
     client.subscribe(Topic_Decoded_Measurement, qos=1)
 
     print("Connected with result code " + str(rc))
 
 
-# When a message is received, this function is called
 def on_message(client, userdata, msg):
     # Decode the message payload and check the topic
     messageEncoded = msg.payload
@@ -40,9 +31,7 @@ def on_message(client, userdata, msg):
         print("Unknown topic: " + msg.topic + "\n\t" + str(message))
 
 
-# When the client disconnects from the broker
 def on_disconnect(client, userdata, rc, properties=None):
-    # client.publish(Topic_Status_Python+"/disconnect", "Disconnected", qos=1, retain=True)
     print("Disconnected with result code " + str(rc))
 
 
@@ -60,14 +49,8 @@ def on_publish_error(client, userdata, mid):
 
 # endregion
 
-# region Step 1: Get the data
-""" To get the data this project will use MQTT protocol
-    The data will be provided from the ASP.Net server on the topic "ECG/Series/Raw"
-    It will be a json string thats need to be decoded
-"""
 
-
-# Deserialize the json string
+# region Step 1: Deserialize the json string
 def DeserializeJson(ms):
     ecgObject = json.loads(ms)
 
@@ -167,21 +150,11 @@ def CWT_filter(ch1, ch2, ch3):
 
 # endregion
 
-
 # region Step 3 + 4: QRSDetector + RR-interval => CSI and ModCSI
-
-
-def TimeDiffer(ecgObject):
-    # Calculate the time it took to get and process the data
-    t1 = ecgObject["TimeStamp"][-1] / 1000
-    t2 = datetime.datetime.now().timestamp()
-    tdif = t2 - t1
-    return tdif
 
 
 # Calculate the parametres from the ecg data
 def CalcParametres(data):
-
     # Will return a dictionary with the parametres calculated from the ecg data
     # This is QRS detection
     qrs_detector = QRSDetector(data, plot_data=False, show_plot=False)
@@ -262,47 +235,7 @@ def CalcParametres(data):
 # endregion
 
 
-# region Step 5: Decission support
-def DecissionSupport(CSINormMax, ModCSINormMax, ch):
-    """Due to the reshearsh of Jesper Jeppesen
-
-    CSI30 will be 1.65 times over the normal value
-    CSI50 will be 2.15 times over the normal value
-    CSI100 will be 1.57 times over the normal value
-    ModCSI30 is not used
-    ModCSI50 is not used
-    ModCSI100 will be 1.80 times over the normal value
-    """
-    alarm = dict()
-    multipleRR = ch["len_rr"] > 4
-    if multipleRR and (ch["CSI30"] / CSINormMax[0]) > 1.05:  # 1.65:
-        alarm["CSI30_Alarm"] = True  # "Seizure"
-    else:
-        alarm["CSI30_Alarm"] = False  # "No seizure"
-
-    if multipleRR and (ch["CSI50"] / CSINormMax[1]) > 1.05:  # 2.15:
-        alarm["CSI50_Alarm"] = True  # "Seizure"
-    else:
-        alarm["CSI50_Alarm"] = False  # "No seizure"
-
-    if multipleRR and (ch["CSI100"] / CSINormMax[2]) > 1.05:  # 1.57:
-        alarm["CSI100_Alarm"] = True  # "Seizure"
-    else:
-        alarm["CSI100_Alarm"] = False  # "No seizure"
-
-    if multipleRR and (ch["ModCSI100"] / ModCSINormMax[2]) > 1.05:  # 1.80:
-        alarm["ModCSI100_Alarm"] = True  # "Seizure"
-    else:
-        alarm["ModCSI100_Alarm"] = False  # "No seizure"
-
-    return alarm
-
-
-# endregion
-
-# region Step 6: Rearrange the data
-
-
+# region Step 5: Rearrange the data
 def RearangeDataBack(ecgObject, Findings_ch1, Filtered_data):
     allParametres = dict()
 
@@ -323,7 +256,7 @@ def RearangeDataBack(ecgObject, Findings_ch1, Filtered_data):
 # endregion
 
 
-# region Step 7: Publish the data
+# region Step 6: Publish the data
 def EncodeJson(dict):
 
     json_object = json.dumps(dict, allow_nan=True, default=str).encode("utf-8")
@@ -346,7 +279,6 @@ def PublishData(json_object):
 def ProcessingAlgorihtm(message):
     try:
         ecgObject = DeserializeJson(message)
-        # ecgObject = message
         ch1, ch2, ch3 = RearangeData(ecgObject)
         data_filt = CWT_filter(ch1, ch2, ch3)
         Findings_ch1 = CalcParametres(data_filt["ch1_filtered"])
@@ -357,23 +289,14 @@ def ProcessingAlgorihtm(message):
     except Exception as e:
         errorMsg = "An error occured in the processing algorithm." + "\n" + str(e)
         encoded = errorMsg.encode("utf-8")
-        # client.publish(Topic_Processed_Measurement, encoded, qos=1, retain=True)
+        client.publish(Topic_Processed_Measurement, encoded, qos=1)
         print("An error occured in the processing algorithm. \n")
         print(e)
-
-
-def load_json_file(file_path):
-    with open(file_path, "r") as file:
-        data = json.load(file)
-    return data
 
 
 # endregion
 
 """Running code"""
-# region Set up and run the MQTT client
-# When the client connects to the broker
-
 client = paho.Client(
     callback_api_version=paho.CallbackAPIVersion.VERSION1,
     client_id="",
@@ -399,35 +322,9 @@ try:
         port=8883,
     )
 
-except ConnectionRefusedError as e:
-    msg = (
-        "First attempt to connect fails because the docker container for the MQTT server needs to start."
-        + "\n"
-        + e
-    ).encode("utf-8")
-
-    client.publish(Topic_Processed_Measurement, msg, qos=1, retain=False)
-
-    print(
-        "First attempt to connect fails because the docker container for the MQTT server needs to start."
-    )
-    print(e)
 except Exception as e:
-    msg = (
-        "First attempt to connect fails because the docker container for the MQTT server needs to start."
-        + "\n"
-        + e
-    ).encode("utf-8")
-    print("An error occured in the processing algorithm. \n")
-    print(str(e))
-
-############################################
-# For testing publish the data from a json.file
-# data = load_json_file("message.json")
-# ProcessingAlgorihtm(data)
-############################################
+    msg = ("Connecting to the broker failed. \n" + e).encode("utf-8")
+    print(msg)
 
 # Will run the client forever, unless you interrupt it
 client.loop_forever()
-
-# endregion
