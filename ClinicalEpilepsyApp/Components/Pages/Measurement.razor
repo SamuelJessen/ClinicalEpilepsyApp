@@ -21,15 +21,6 @@ else
         
     </div>
 
-    @* <div Class="rz-p-0 rz-p-md-12" style="width: 100%; overflow: auto">
-        <RadzenChart style="width: auto">
-            <RadzenColumnSeries Data="@ChartData1" CategoryProperty="Time" ValueProperty="Voltage" />
-            <RadzenColumnSeries Data="@ChartData2" CategoryProperty="Time" ValueProperty="Voltage" />
-            <RadzenColumnSeries Data="@ChartData3" CategoryProperty="Time" ValueProperty="Voltage" />
-            <RadzenCategoryAxis step="10"/>
-        </RadzenChart>
-    </div> *@
-
     <div class="container">
         <div class="row">
             <div class="col-sm-12 my-5">
@@ -181,11 +172,7 @@ else
 
         return extractedPoints.ToList();
     }
-
-    //private EcgMeasurement[] ChartData1 => WindowStartIndex + windowSize < measurement.ProcessedEcgChannel1.Count ? EcgChannel1.Skip(WindowStartIndex).Take(windowSize).ToArray() : EcgChannel1.Skip(measurement.ProcessedEcgChannel1.Count-windowSize).Take(windowSize).ToArray();
-    //private EcgMeasurement[] ChartData2 => WindowStartIndex + windowSize < measurement.ProcessedEcgChannel2.Count ? EcgChannel2.Skip(WindowStartIndex).Take(windowSize).ToArray() : EcgChannel2.Skip(measurement.ProcessedEcgChannel2.Count-windowSize).Take(windowSize).ToArray();
-    //private EcgMeasurement[] ChartData3 => WindowStartIndex + windowSize < measurement.ProcessedEcgChannel3.Count ? EcgChannel3.Skip(WindowStartIndex).Take(windowSize).ToArray() : EcgChannel3.Skip(measurement.ProcessedEcgChannel3.Count - windowSize).Take(windowSize).ToArray();
-
+    
     private EcgMeasurement[] ChartData1 => EcgChannel1.Skip(WindowStartIndex).Take(windowSize).ToArray();
     private EcgMeasurement[] ChartData2 => EcgChannel2.Skip(WindowStartIndex).Take(windowSize).ToArray();
     private EcgMeasurement[] ChartData3 => EcgChannel3.Skip(WindowStartIndex).Take(windowSize).ToArray();
