@@ -116,7 +116,7 @@ def CWT_filter(ch1, ch2, ch3):
     wavelet = "bior3.1"
     for i, channel in enumerate(channels):
         # Perform the wavelet transform
-        coeffs = pywt.swt(channel, wavelet, level=1)
+        coeffs = pywt.swt(channel, wavelet, level=2)
 
         # Apply wavelet thresholding to the coefficients
         threshold = np.std(channel)
